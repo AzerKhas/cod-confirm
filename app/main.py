@@ -26,7 +26,14 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
             "dry_run": settings.dry_run,
         },
     )
+    if settings.scheduler_enabled and settings.app_env != "test":
+        from app.services.scheduler import start_scheduler
+
+        start_scheduler()
     yield
+    from app.services.scheduler import stop_scheduler
+
+    stop_scheduler()
     log.info("app stopping")
 
 

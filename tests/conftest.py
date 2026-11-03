@@ -9,6 +9,10 @@ from collections.abc import Iterator
 os.environ.setdefault("APP_ENV", "test")
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("DRY_RUN", "true")
+os.environ.setdefault("SCHEDULER_ENABLED", "false")
+# Quiet hours off by default in tests (they depend on the real clock); scheduler tests enable them.
+os.environ.setdefault("QUIET_HOURS_START", "0")
+os.environ.setdefault("QUIET_HOURS_END", "0")
 
 import pytest
 from fastapi.testclient import TestClient

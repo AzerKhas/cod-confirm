@@ -1,5 +1,13 @@
 # Changelog
 
+## Phase 5 – Scheduler
+- `services/scheduler.py`: `tick()` every `SCHEDULER_INTERVAL_SECONDS` (APScheduler, started in the app lifespan, single instance), idempotent jobs, one shop's error never blocks the others.
+- Pending confirmations: night orders, failed sends and missed background jobs are sent at the next allowed time; gives up after `MAX_SEND_FAILURES`.
+- Reminders after `shop.reminder_delays` (default 3h and 24h), skipped while the customer is talking; NO_ANSWER after `NO_ANSWER_AFTER_HOURS` past the last reminder; opted-out customers never reminded.
+- Quiet hours 22:00-08:00 local (shop timezone, default Africa/Tunis, `tzdata` bundled for Windows): no business-initiated message at night, including the confirmation right after an order.
+- Daily summary to the owner at `DAILY_SUMMARY_HOUR` (orders, confirmation rate, cancellations, no answer, pending, modifications, delivery fees saved) + data-retention purge, once per local day.
+- `services/stats.py`: KPIs shared with the dashboard. Migration `0005`.
+
 ## Phase 4 – Conversation logic
 - `services/intent.py`: rule-based intent detection for Tunisian Darija (Latin + digits), Arabic and French: normalization (accents, Arabic diacritics/letter forms, Arabic-Indic digits, stretched letters), button payloads, 1/2/3 shortcuts, emojis, negations (`ma nconfirmich`, `je confirme pas`), weak words (`la`, `non`, `ok`) only counted in short replies, questions detected.
 - Optional LLM fallback (`INTENT_LLM_ENABLED`, official `anthropic` SDK, `requirements-llm.txt`) only when the rules return UNKNOWN; errors / refusals fall back safely.

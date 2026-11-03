@@ -50,6 +50,19 @@ class Settings(BaseSettings):
     # Conversation safety: max "I didn't understand" replies per order.
     max_clarifications: int = Field(default=2, ge=0, le=5)
 
+    # Scheduler (reminders, timeouts, daily summary). Run it in ONE process only.
+    scheduler_enabled: bool = True
+    scheduler_interval_seconds: int = Field(default=60, ge=10, le=3600)
+    # Never send business-initiated messages to customers in this local time range.
+    quiet_hours_start: int = Field(default=22, ge=0, le=23)
+    quiet_hours_end: int = Field(default=8, ge=0, le=23)
+    # Hours after the last reminder before an unanswered order becomes NO_ANSWER.
+    no_answer_after_hours: int = Field(default=24, ge=1, le=168)
+    # Local hour at which the daily summary is sent to the owner.
+    daily_summary_hour: int = Field(default=21, ge=0, le=23)
+    # Give up sending a confirmation template after this many failures.
+    max_send_failures: int = Field(default=3, ge=1, le=10)
+
     # Defaults
     default_timezone: str = "Africa/Tunis"
     default_language: Language = "darija"

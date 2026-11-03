@@ -116,11 +116,15 @@ def send_order_confirmation(
 def send_order_confirmation_job(order_id: int) -> None:
     """Background task entry point: own DB session (the request one is closed)."""
     from app import db as db_module
+    from app.services.scheduler import is_quiet_hours
 
     with db_module.SessionLocal() as db:
         order = db.get(Order, order_id)
         if order is None:
             return
+        if is_quiet_hours(order.shop, datetime.now(UTC)):
+            log.info("notify: quiet hours, confirmation postponed", extra={"order_id": order_id})
+            return  # the scheduler sends it at the end of the quiet hours
         try:
             send_order_confirmation(db, order)
         except Exception:  # never crash the worker; the scheduler retries NEW orders

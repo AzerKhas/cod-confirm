@@ -20,7 +20,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 | 2 | Order intake (API, Shopify, WooCommerce, form) | ✅ |
 | 3 | WhatsApp Cloud API + webhook | ✅ |
 | 4 | Conversation logic (intent, i18n, opt-out, 24h window) | ✅ |
-| 5 | Scheduler (reminders, quiet hours) | ⏳ |
+| 5 | Scheduler (reminders, quiet hours) | ✅ |
 | 6 | Dashboard | ⏳ |
 | 7 | Google Sheets sync | ⏳ |
 | 8 | Multi-tenant & admin | ⏳ |
@@ -109,6 +109,14 @@ owner's chat id in `shops.owner_telegram_chat_id`.
 
 Optional LLM fallback for replies the rules don't understand:
 `pip install -r requirements-llm.txt`, then `INTENT_LLM_ENABLED=true` and `ANTHROPIC_API_KEY=...`.
+
+## Scheduler
+
+Runs inside the app (`SCHEDULER_ENABLED=true`) every minute. **Enable it on one instance only.**
+
+- New order → confirmation right away, except during quiet hours (22:00-08:00 shop time) → sent at 08:00.
+- No answer → reminder after 3 h, second after 24 h (`shops.reminder_delays`), then NO_ANSWER 24 h later.
+- Every evening (21:00) → summary to the owner on Telegram + purge of data older than `shops.data_retention_days`.
 
 ## Database migrations
 

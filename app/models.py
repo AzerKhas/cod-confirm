@@ -6,13 +6,14 @@ Deleting a Customer cascades to their orders, messages and events (see `services
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
     JSON,
     Boolean,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -93,6 +94,8 @@ class Shop(Base):
     reminder_delays: Mapped[list[int]] = mapped_column(JSON, default=lambda: [3, 24])
     delivery_fee: Mapped[Decimal] = mapped_column(Money, default=Decimal("7.000"))
     data_retention_days: Mapped[int] = mapped_column(Integer, default=365)
+    # Local date of the last daily summary / maintenance (avoids sending it twice).
+    last_daily_run_on: Mapped[date | None] = mapped_column(Date)
 
     # Telegram chat id of the owner, for alerts (modification requests, questions).
     owner_telegram_chat_id: Mapped[str | None] = mapped_column(String(40))
