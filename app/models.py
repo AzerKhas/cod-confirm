@@ -94,6 +94,14 @@ class Shop(Base):
     delivery_fee: Mapped[Decimal] = mapped_column(Money, default=Decimal("7.000"))
     data_retention_days: Mapped[int] = mapped_column(Integer, default=365)
 
+    # Webhook signing secrets (encrypted at rest in Phase 9).
+    shopify_webhook_secret: Mapped[str | None] = mapped_column(Text)
+    woocommerce_webhook_secret: Mapped[str | None] = mapped_column(Text)
+    # Products shown in the hosted form: [{"name": str, "price": "59.000"}]
+    form_products: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSON, default=list, server_default="[]"
+    )
+
     # Only a SHA-256 hash of the intake API key is stored; prefix shown in the UI.
     api_key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     api_key_prefix: Mapped[str] = mapped_column(String(12))

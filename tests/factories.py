@@ -16,8 +16,13 @@ _seq = count(1)
 
 
 def make_shop(db: Session, **kw: object) -> Shop:
+    return make_shop_with_key(db, **kw)[0]
+
+
+def make_shop_with_key(db: Session, **kw: object) -> tuple[Shop, str]:
+    """Return (shop, plain API key)."""
     n = next(_seq)
-    _plain, key_hash, prefix = generate_api_key()
+    plain, key_hash, prefix = generate_api_key()
     shop = Shop(
         name=kw.pop("name", f"Shop {n}"),
         slug=kw.pop("slug", f"shop-{n}"),
@@ -27,7 +32,7 @@ def make_shop(db: Session, **kw: object) -> Shop:
     )
     db.add(shop)
     db.flush()
-    return shop
+    return shop, plain
 
 
 def make_customer(db: Session, shop: Shop, **kw: object) -> Customer:

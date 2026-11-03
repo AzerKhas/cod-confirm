@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}{{ shop.name }} – {{ t.title }}{% endblock %}
+{% macro field_error(name) %}
+  {% if errors.get(name) %}<p class="mt-1 text-sm text-red-600">{{ errors[name] }}</p>{% endif %}
+{% endmacro %}
+{% block body %}
+<main class="mx-auto max-w-md px-4 py-8">
+  <header class="mb-6 text-center">
+    <h1 class="text-2xl font-bold">{{ shop.name }}</h1>
+    <p class="mt-1 text-lg font-semibold text-emerald-700">{{ t.title }}</p>
+    <p class="text-sm text-slate-500">{{ t.subtitle }}</p>
+  </header>
+
+  {% if errors.get('_form') %}
+    <div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ errors['_form'] }}</div>
+  {% endif %}
+
+  <form method="post" action="" class="space-y-4 rounded-2xl bg-white p-5 shadow-sm" novalidate>
+    <input type="hidden" name="lang" value="{{ lang }}">
+    {# Honeypot: hidden from humans, bots fill it. #}
+    <div class="hidden" aria-hidden="true">
+      <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium" for="name">{{ t.name }}</label>
+      <input id="name" name="name" type="text" maxlength="120" required autocomplete="name"
+             value="{{ values.get('name', '') }}"
+             class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-600 focus:outline-none">
+      {{ field_error('name') }}
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium" for="phone">{{ t.phone }}</label>
+      <input id="phone" name="phone" type="tel" inputmode="tel" maxlength="32" required
+             autocomplete="tel" placeholder="98 123 456" dir="ltr"
+             value="{{ values.get('phone', '') }}"
+             class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-600 focus:outline-none">
+      <p class="mt-1 text-xs text-slate-500">{{ t.phone_hint }}</p>
+      {{ field_error('phone') }}
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium" for="city">{{ t.city }}</label>
+      <select id="city" name="city" required
+              class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-600 focus:outline-none">
+        <option value="">{{ t.city_placeholder }}</option>
+        {% for g in governorates %}
+          <option value="{{ g }}" {% if values.get('city') == g %}selected{% endif %}>{{ g }}</option>
+        {% endfor %}
+      </select>
+      {{ field_error('city') }}
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium" for="address">{{ t.address }}</label>
+      <textarea id="address" name="address" rows="2" maxlength="300" required
+                placeholder="{{ t.address_hint }}"
+                class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-600 focus:outline-none">{{ values.get('address', '') }}</textarea>
+      {{ field_error('address') }}
+    </div>
+
+    <div class="flex gap-3">
+      <div class="flex-1">
+        <label class="block text-sm font-medium" for="product">{{ t.product }}</label>
+        {% if products %}
+          <select id="product" name="product" required
+                  class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 focus:border-emerald-600 focus:outline-none">
+            {% for p in products %}
+              <option value="{{ loop.index0 }}" {% if values.get('product') == loop.index0|string %}selected{% endif %}>
+                {{ p.name }} – {{ p.price }} DT
+              </option>
+            {% endfor %}
+          </select>
+        {% else %}
+          <input id="product" name="product_text" type="text" maxlength="200" required
+                 value="{{ values.get('product_text', '') }}"
+                 class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-600 focus:outline-none">
+        {% endif %}
+        {{ field_error('product') }}
+      </div>
+      <div class="w-20">
+        <label class="block text-sm font-medium" for="qty">{{ t.qty }}</label>
+        <input id="qty" name="qty" type="number" min="1" max="20" value="{{ values.get('qty', '1') }}"
+               class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-600 focus:outline-none">
+        {{ field_error('qty') }}
+      </div>
+    </div>
+
+    <button type="submit"
+            class="w-full rounded-xl bg-emerald-600 px-4 py-3 text-lg font-semibold text-white hover:bg-emerald-700">
+      {{ t.submit }}
+    </button>
+  </form>
+</main>
+{% endblock %}

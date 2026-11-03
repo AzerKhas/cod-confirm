@@ -17,7 +17,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 |------:|---------|-------|
 | 0 | Setup: skeleton, config, DB, Alembic, Docker, `/health`, tests | ✅ |
 | 1 | Models & order state machine | ✅ |
-| 2 | Order intake (API, Shopify, WooCommerce, form) | ⏳ |
+| 2 | Order intake (API, Shopify, WooCommerce, form) | ✅ |
 | 3 | WhatsApp Cloud API + webhook | ⏳ |
 | 4 | Conversation logic (intent, i18n, opt-out, 24h window) | ⏳ |
 | 5 | Scheduler (reminders, quiet hours) | ⏳ |
@@ -57,6 +57,34 @@ docker compose up --build
 ```
 
 The container runs `alembic upgrade head` then starts uvicorn on port 8000.
+
+## Create a shop
+
+```powershell
+python -m scripts.create_shop --name "Skmei Tunisie" --slug skmei-tn `
+    --product "Skmei 1251=59" --product "Skmei 1335=69"
+```
+
+Prints the shop's intake API key **once** (only its hash is stored).
+
+## Receiving orders
+
+| Source | Endpoint | Auth |
+|---|---|---|
+| Any system | `POST /api/orders` (JSON, see `/docs`) | header `X-API-Key: cc_...` |
+| Shopify | `POST /webhooks/shopify/{slug}` – topic `orders/create` | `X-Shopify-Hmac-Sha256` with the shop's `shopify_webhook_secret` |
+| WooCommerce | `POST /webhooks/woocommerce/{slug}` – topic `order.created` | `X-WC-Webhook-Signature` with the shop's `woocommerce_webhook_secret` |
+| Facebook / Instagram | hosted form `https://<host>/form/{slug}` (`?lang=ar` / `fr`) | public, honeypot |
+
+Example:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/orders -H "X-API-Key: cc_..." -H "Content-Type: application/json" \
+  -d '{"external_id":"A-1","customer_name":"Ahmed","phone":"98 123 456","address":"Rue X","city":"Sousse","items":[{"name":"Skmei 1251","qty":1,"price":"59"}]}'
+```
+
+Phone numbers are normalized to `+216XXXXXXXX`; only Tunisian mobiles (2x, 4x, 5x, 9x) are accepted.
+Shopify paid orders and WooCommerce non-COD orders are ignored. Re-sent webhooks never create duplicates.
 
 ## Database migrations
 

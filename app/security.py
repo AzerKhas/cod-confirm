@@ -5,6 +5,7 @@ Signature verification, password hashing and encryption are added in later phase
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import secrets
@@ -24,6 +25,19 @@ def hash_api_key(plain: str) -> str:
 
 def verify_api_key(plain: str, stored_hash: str) -> bool:
     return hmac.compare_digest(hash_api_key(plain), stored_hash)
+
+
+def hmac_sha256_base64(secret: str, body: bytes) -> str:
+    """base64(HMAC-SHA256(secret, body)) - the scheme used by Shopify and WooCommerce."""
+    digest = hmac.new(secret.encode("utf-8"), body, hashlib.sha256).digest()
+    return base64.b64encode(digest).decode("ascii")
+
+
+def verify_base64_hmac(secret: str | None, body: bytes, signature: str | None) -> bool:
+    """Constant-time check of a base64 HMAC-SHA256 signature header."""
+    if not secret or not signature:
+        return False
+    return hmac.compare_digest(hmac_sha256_base64(secret, body), signature.strip())
 
 
 def mask_phone(phone: str | None) -> str:

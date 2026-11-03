@@ -10,7 +10,7 @@ from fastapi import FastAPI
 
 from app.config import get_settings
 from app.logging_config import configure_logging
-from app.routers import health
+from app.routers import health, intake, order_form
 
 log = logging.getLogger("cod_confirm")
 
@@ -44,6 +44,8 @@ def create_app() -> FastAPI:
         openapi_url=None if settings.app_env == "prod" else "/openapi.json",
     )
     app.include_router(health.router)
+    app.include_router(intake.router)
+    app.include_router(order_form.router)
     return app
 
 
