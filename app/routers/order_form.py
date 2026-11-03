@@ -21,6 +21,7 @@ from app.enums import Language, OrderSource
 from app.models import Shop
 from app.ratelimit import client_ip, limiter
 from app.schemas import OrderIn
+from app.security import check_form_token, make_form_token
 from app.services.intake import create_order
 from app.services.messages import TN_GOVERNORATES, form_texts
 from app.services.notify import send_order_confirmation_job
@@ -70,6 +71,7 @@ def _render(
             "products": shop.form_products or [],
             "values": values or {},
             "errors": errors or {},
+            "form_token": make_form_token(shop.slug),
         },
         status_code=status_code,
     )
@@ -140,6 +142,10 @@ async def submit_form(
     lang = _language(shop, values.get("lang"))
     t = form_texts(lang)
     done_url = f"/form/{shop.slug}/done?lang={lang.value}"
+
+    if not check_form_token(values.get("ft"), shop.slug):
+        log.info("form: missing or expired token", extra={"shop_id": shop.id})
+        return _render(request, shop, lang, values, {"_form": t["err_generic"]}, 400)
 
     if values.get("website"):  # honeypot filled -> bot; pretend success, store nothing
         log.info("form: honeypot triggered", extra={"shop_id": shop.id})

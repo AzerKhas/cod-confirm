@@ -7,10 +7,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Pinned versions (requirements.lock) for reproducible, audited builds.
+COPY requirements.lock .
+RUN pip install -r requirements.lock
 
 COPY app ./app
+COPY scripts ./scripts
 COPY alembic ./alembic
 COPY alembic.ini .
 

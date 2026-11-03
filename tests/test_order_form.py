@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.enums import Language, OrderSource
 from app.models import Order
+from app.security import make_form_token
 from tests.factories import make_shop
 
 PRODUCTS = [{"name": "Skmei 1251", "price": "59.000"}, {"name": "Skmei 1335", "price": "69.000"}]
@@ -22,9 +23,10 @@ def shop(db_session: Session) -> Any:
     return s
 
 
-def form(**over: str) -> dict[str, str]:
+def form(slug: str = "skmei-tn", **over: str) -> dict[str, str]:
     data = {"name": "Mariem Gharbi", "phone": "55 444 333", "city": "Nabeul",
             "address": "Hammamet, rue des jasmins", "product": "1", "qty": "2"}  # fmt: skip
+    data["ft"] = make_form_token(slug)
     data.update(over)
     return data
 
@@ -119,9 +121,35 @@ def test_free_text_product_when_no_catalog(client: TestClient, db_session: Sessi
     assert 'name="product_text"' in page.text
     assert "Commander maintenant" in page.text
     r = client.post("/form/no-catalog",
-                    data=form(product="", product_text="Montre bleue", lang="fr"),
+                    data=form("no-catalog", product="", product_text="Montre bleue", lang="fr"),
                     follow_redirects=False)  # fmt: skip
     assert r.status_code == 303
     order = db_session.scalars(select(Order)).one()
     assert order.items[0]["name"] == "Montre bleue"
     assert order.total == Decimal("0.000")
+
+
+@pytest.mark.parametrize("token", [None, "garbage", "other-shop"])
+def test_form_token_required(
+    client: TestClient, db_session: Session, shop: Any, token: str | None
+) -> None:
+    data = form()
+    if token is None:
+        data.pop("ft")
+    elif token == "other-shop":
+        data["ft"] = make_form_token("another-slug")
+    else:
+        data["ft"] = token
+    r = client.post("/form/skmei-tn", data=data)
+    assert r.status_code == 400
+    assert count_orders(db_session) == 0
+    assert 'name="ft" value="' in r.text  # a fresh token so the customer can retry
+
+
+def test_expired_form_token(client: TestClient, db_session: Session, shop: Any,
+                            monkeypatch: pytest.MonkeyPatch) -> None:  # fmt: skip
+    import app.security as sec
+
+    data = form()
+    monkeypatch.setattr(sec, "FORM_TOKEN_MAX_AGE", -1)
+    assert client.post("/form/skmei-tn", data=data).status_code == 400

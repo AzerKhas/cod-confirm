@@ -50,7 +50,7 @@
     <h2 class="font-semibold">Comptes</h2>
     <ul class="divide-y">{% for u in users %}
       <li class="flex items-center gap-2 py-1.5">{{ u.email }} <span class="text-slate-400">({{ u.role.value }}{% if not u.is_active %}, inactif{% endif %})</span>
-        <form method="post" action="/admin/users/{{ u.id }}/reset" class="ml-auto" onsubmit="return confirm('Générer un nouveau mot de passe ?');">
+        <form method="post" action="/admin/users/{{ u.id }}/reset" class="ml-auto" data-confirm="Générer un nouveau mot de passe ?">
           <input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="text-xs text-slate-500 hover:text-red-600">Réinitialiser le mot de passe</button></form></li>
     {% endfor %}</ul>
     <form method="post" action="/admin/shops/{{ shop.id }}/users" class="flex flex-wrap gap-2">
@@ -59,7 +59,7 @@
       <select name="role" class="rounded border bg-white px-2 py-1.5"><option value="staff">Employé</option><option value="owner">Propriétaire</option></select>
       <button class="rounded-lg bg-slate-800 px-3 py-1.5 text-white">Ajouter</button>
     </form>
-    <form method="post" action="/admin/shops/{{ shop.id }}/api-key" onsubmit="return confirm('L\'ancienne clé API cessera de fonctionner. Continuer ?');">
+    <form method="post" action="/admin/shops/{{ shop.id }}/api-key" data-confirm="L&#39;ancienne clé API cessera de fonctionner. Continuer ?">
       <input type="hidden" name="csrf_token" value="{{ csrf }}">
       <button class="text-xs text-red-600">Régénérer la clé API</button>
     </form>

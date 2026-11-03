@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     secret_key: SecretStr = SecretStr("change-me")
     encryption_key: SecretStr = SecretStr("")
 
+    # Host names the app answers to (comma separated). "*" only for local dev.
+    allowed_hosts: str = "*"
+    # Max request body (bytes) for every endpoint.
+    max_body_bytes: int = Field(default=1_000_000, ge=10_000, le=20_000_000)
+
     # Database
     database_url: str = "sqlite:///./cod_confirm.db"
 
@@ -85,12 +90,16 @@ class Settings(BaseSettings):
                 raise ValueError("SECRET_KEY must be at least 32 characters in prod")
             if not self.dry_run and not self.meta_app_secret.get_secret_value():
                 raise ValueError("META_APP_SECRET is required when DRY_RUN=false in prod")
-            key = self.encryption_key.get_secret_value()
+            if self.allowed_hosts.strip() in ("", "*"):
+                raise ValueError("ALLOWED_HOSTS must list your domain(s) in prod")
+            keys = [k.strip() for k in self.encryption_key.get_secret_value().split(",")]
             try:
-                if len(base64.urlsafe_b64decode(key.encode())) != 32:
+                if not any(keys) or any(
+                    len(base64.urlsafe_b64decode(k.encode())) != 32 for k in keys
+                ):
                     raise ValueError
             except ValueError as exc:
-                raise ValueError("ENCRYPTION_KEY must be a Fernet key in prod") from exc
+                raise ValueError("ENCRYPTION_KEY must be one or more Fernet keys in prod") from exc
         return self
 
 

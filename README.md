@@ -24,7 +24,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 | 6 | Dashboard | ✅ |
 | 7 | Google Sheets sync | ✅ |
 | 8 | Multi-tenant & admin | ✅ |
-| 9 | Security hardening | ⏳ |
+| 9 | Security hardening | ✅ |
 | 10 | Deployment | ⏳ |
 
 ## Run locally (Windows / PowerShell)
@@ -171,6 +171,10 @@ hardcoded and never logged; phone numbers and tokens are masked in logs.
 
 - `DRY_RUN=true` (default): WhatsApp messages are logged, not sent — no Meta credentials needed.
 - `APP_ENV=prod` refuses to start with a weak `SECRET_KEY` or without `META_APP_SECRET` when sending for real.
+
+## Security
+
+See [SECURITY.md](SECURITY.md): data kept, controls, key rotation, backups, penetration-test checklist.
 
 ## Project structure
 

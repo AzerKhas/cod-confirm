@@ -33,6 +33,7 @@ def test_prod_ok_with_strong_secret() -> None:
         app_env="prod",
         secret_key="x" * 40,
         encryption_key=Fernet.generate_key().decode(),
+        allowed_hosts="app.codconfirm.tn",
         _env_file=None,  # type: ignore[arg-type]
     )
     assert s.dry_run is True

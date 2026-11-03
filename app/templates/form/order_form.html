@@ -17,6 +17,7 @@
 
   <form method="post" action="" class="space-y-4 rounded-2xl bg-white p-5 shadow-sm" novalidate>
     <input type="hidden" name="lang" value="{{ lang }}">
+    <input type="hidden" name="ft" value="{{ form_token }}">
     {# Honeypot: hidden from humans, bots fill it. #}
     <div class="hidden" aria-hidden="true">
       <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>

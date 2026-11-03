@@ -5,14 +5,18 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.auth import LoginRequired
 from app.config import get_settings
 from app.logging_config import configure_logging
+from app.middleware import BodySizeLimitMiddleware, SecurityHeadersMiddleware
 from app.routers import admin, dashboard, health, intake, order_form, webhook_meta
 
 log = logging.getLogger("cod_confirm")
@@ -68,6 +72,12 @@ def create_app() -> FastAPI:
         same_site="lax",
         https_only=settings.app_env == "prod",
     )
+
+    hosts = [h.strip() for h in settings.allowed_hosts.split(",") if h.strip()] or ["*"]
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts)
+    app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_body_bytes)
+    app.add_middleware(SecurityHeadersMiddleware, hsts=settings.app_env == "prod")
+    app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
     @app.exception_handler(LoginRequired)
     async def _login_required(_request: Request, _exc: LoginRequired) -> RedirectResponse:

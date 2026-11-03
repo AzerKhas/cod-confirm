@@ -194,9 +194,9 @@ def update_whatsapp(
     if access_token.strip():
         shop.access_token_encrypted = encrypt_secret(access_token.strip())
     if shopify_secret.strip():
-        shop.shopify_webhook_secret = shopify_secret.strip()
+        shop.shopify_webhook_secret = encrypt_secret(shopify_secret.strip())
     if woocommerce_secret.strip():
-        shop.woocommerce_webhook_secret = woocommerce_secret.strip()
+        shop.woocommerce_webhook_secret = encrypt_secret(woocommerce_secret.strip())
     db.commit()
     return _back(shop, "saved")
 

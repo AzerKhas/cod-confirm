@@ -25,7 +25,7 @@ from typing import Any
 import httpx
 
 from app.config import Settings, get_settings
-from app.crypto import decrypt_secret
+from app.crypto import reveal_secret
 from app.models import Shop
 from app.security import mask_phone
 
@@ -248,9 +248,5 @@ class WhatsAppClient:
 def client_for_shop(shop: Shop, settings: Settings | None = None, **kwargs: Any) -> WhatsAppClient:
     """Build a client from the shop's encrypted credentials."""
     settings = settings or get_settings()
-    token = (
-        decrypt_secret(shop.access_token_encrypted, settings)
-        if shop.access_token_encrypted
-        else None
-    )
+    token = reveal_secret(shop.access_token_encrypted, settings)
     return WhatsAppClient(shop.whatsapp_phone_number_id, token, settings=settings, **kwargs)

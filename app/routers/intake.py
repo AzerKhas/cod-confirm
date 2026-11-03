@@ -24,6 +24,7 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.crypto import reveal_secret
 from app.db import get_db
 from app.enums import OrderSource
 from app.models import Shop
@@ -171,7 +172,7 @@ async def shopify_webhook(
 ) -> WebhookResultOut:
     body = await read_limited_body(request)
     shop = await run_in_threadpool(_shop_by_slug, db, shop_slug)
-    secret = shop.shopify_webhook_secret if shop else None
+    secret = reveal_secret(shop.shopify_webhook_secret) if shop else None
     if shop is None or not verify_base64_hmac(secret, body, x_shopify_hmac_sha256):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid signature")
 
@@ -200,7 +201,7 @@ async def woocommerce_webhook(
         return WebhookResultOut(status="ping")
 
     shop = await run_in_threadpool(_shop_by_slug, db, shop_slug)
-    secret = shop.woocommerce_webhook_secret if shop else None
+    secret = reveal_secret(shop.woocommerce_webhook_secret) if shop else None
     if shop is None or not verify_base64_hmac(secret, body, x_wc_webhook_signature):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "invalid signature")
 

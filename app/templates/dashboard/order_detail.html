@@ -48,7 +48,7 @@
 
     {% if user.role.value == 'owner' %}
     <form method="post" action="/dashboard/customers/{{ customer.id }}/delete"
-          onsubmit="return confirm('Supprimer définitivement ce client, ses commandes et ses messages ?');">
+          data-confirm="Supprimer définitivement ce client, ses commandes et ses messages ?">
       <input type="hidden" name="csrf_token" value="{{ csrf }}">
       <button class="text-xs text-slate-400 hover:text-red-600">Supprimer les données de ce client</button>
     </form>

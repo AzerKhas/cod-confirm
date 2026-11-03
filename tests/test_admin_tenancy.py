@@ -225,7 +225,7 @@ def test_form_rate_limit_per_ip(client: TestClient, db_session: Session) -> None
     db_session.commit()
     codes = [client.post("/form/busy", data={"website": "bot"}, follow_redirects=False).status_code
              for _ in range(11)]  # fmt: skip
-    assert codes[:10] == [303] * 10
+    assert codes[:10] == [400] * 10  # no form token, but each one counts for the limit
     assert codes[10] == 429
 
 

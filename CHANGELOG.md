@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase 9 – Security hardening
+- Webhook secrets (Shopify / WooCommerce) encrypted at rest like WhatsApp tokens; legacy plain values still work; key rotation with `ENCRYPTION_KEY=new,old` + `scripts/rotate_secrets.py`.
+- Public order form: signed expiring token (2 h) against scripted submissions (on top of honeypot + per-IP rate limit).
+- Security headers on every response (CSP without inline scripts, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, COOP, HSTS in prod, no-store on private pages); inline `onsubmit` replaced by `data-confirm` + `/static/app.js`.
+- Global body-size limit (also for chunked bodies), `TrustedHostMiddleware` (`ALLOWED_HOSTS` mandatory in prod).
+- `pip-audit` in dev requirements (0 known vulnerabilities), pinned `requirements.lock` used by Docker.
+- `deploy/backup.sh` (pg_dump, optional AES-256 encryption, retention), `SECURITY.md` (data kept, controls, secrets & key rotation, backups/restore, incident response, penetration-test checklist).
+- 454 tests.
+
 ## Phase 8 – Multi-tenant & admin
 - Plans (`app/plans.py`): Trial 50 / Starter 300 / Pro 1500 / Business 6000 orders per month (49 / 129 / 349 DT), API rate per plan.
 - `UsageCounter` per shop and month (orders, messages sent), kept even when data is purged; duplicates not counted.

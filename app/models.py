@@ -110,7 +110,7 @@ class Shop(Base):
     # Telegram chat id of the owner, for alerts (modification requests, questions).
     owner_telegram_chat_id: Mapped[str | None] = mapped_column(String(40))
 
-    # Webhook signing secrets (encrypted at rest in Phase 9).
+    # Webhook signing secrets (encrypted at rest, see app/crypto.py).
     shopify_webhook_secret: Mapped[str | None] = mapped_column(Text)
     woocommerce_webhook_secret: Mapped[str | None] = mapped_column(Text)
     # Products shown in the hosted form: [{"name": str, "price": "59.000"}]
