@@ -25,6 +25,7 @@ from app.enums import Actor, Direction, Language, MessageStatus, MessageType, Or
 from app.models import Customer, MessageLog, Order, Shop
 from app.security import mask_phone
 from app.services import messages as m
+from app.services import usage
 from app.services.alerts import notify_owner
 from app.services.intent import Intent, IntentClassifier, build_classifier, detect
 from app.services.notify import customer_language
@@ -100,6 +101,8 @@ class Conversation:
         """Send a free-form reply. `force` is only used for the final STOP acknowledgment."""
         if self.customer.opted_out and not force:
             return
+        if not self.shop.is_active:
+            return
         if not in_service_window(self.customer):
             log.info("conversation: 24h window closed, reply skipped", extra={"key": key})
             return
@@ -123,6 +126,7 @@ class Conversation:
             return
         out.wa_message_id = result.message_id
         out.status = MessageStatus.SENT
+        usage.bump(self.db, self.shop.id, messages=1)
 
     def alert_owner(self, title: str) -> None:
         order = self.order

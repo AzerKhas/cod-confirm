@@ -17,6 +17,7 @@ from app.config import Settings, get_settings
 from app.enums import Actor, Direction, Language, MessageStatus, MessageType, OrderStatus
 from app.models import Customer, MessageLog, Order
 from app.services import messages as m
+from app.services import usage
 from app.services.orders import transition
 from app.services.whatsapp import WhatsAppClient, WhatsAppError, client_for_shop
 
@@ -64,6 +65,11 @@ def send_order_template(
         log.info("notify: customer opted out, not sent", extra={"order_id": order.id})
         return None
 
+    allowed, reason = usage.can_send(db, order.shop)
+    if not allowed:
+        log.warning("notify: not sent", extra={"order_id": order.id, "reason": reason})
+        return None
+
     language = customer_language(customer)
     params = _params(tpl, order)
     payloads: Sequence[str] = button_payloads(order) if tpl.buttons else ()
@@ -96,6 +102,7 @@ def send_order_template(
     msg.wa_message_id = result.message_id
     msg.status = MessageStatus.SENT
     order.last_contacted_at = datetime.now(UTC)
+    usage.bump(db, order.shop_id, messages=1)
     db.flush()
     return msg
 

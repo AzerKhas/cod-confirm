@@ -23,7 +23,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 | 5 | Scheduler (reminders, quiet hours) | ✅ |
 | 6 | Dashboard | ✅ |
 | 7 | Google Sheets sync | ✅ |
-| 8 | Multi-tenant & admin | ⏳ |
+| 8 | Multi-tenant & admin | ✅ |
 | 9 | Security hardening | ⏳ |
 | 10 | Deployment | ⏳ |
 
@@ -78,6 +78,26 @@ Then open <http://127.0.0.1:8000/login>. Demo data for a sales demo:
 ```powershell
 python -m scripts.seed_demo     # shop "Boutique Yasmine", login demo@codconfirm.tn
 ```
+
+## Operator (super-admin)
+
+```powershell
+python -m scripts.create_user --email you@codconfirm.tn --role superadmin
+```
+
+`/admin` lists every shop with its plan and monthly usage, creates new shops (API key and the
+owner's first password are shown once), manages subscriptions (suspend / plan / paid until) and
+stores WhatsApp / Shopify / WooCommerce credentials.
+
+| Plan | Orders / month | Price |
+|---|---:|---:|
+| Trial | 50 | 0 DT |
+| Starter | 300 | 49 DT |
+| Pro | 1 500 | 129 DT |
+| Business | 6 000 | 349 DT |
+
+Above the quota (+10%), orders are still saved but the bot stops messaging until the next
+month or an upgrade.
 
 ## Receiving orders
 

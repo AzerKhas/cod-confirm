@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.enums import Language, OrderSource
 from app.models import Shop
+from app.ratelimit import client_ip, limiter
 from app.schemas import OrderIn
 from app.services.intake import create_order
 from app.services.messages import TN_GOVERNORATES, form_texts
@@ -26,6 +27,7 @@ from app.services.notify import send_order_confirmation_job
 from app.templating import templates
 
 router = APIRouter(tags=["form"], include_in_schema=False)
+FORM_POSTS_PER_MINUTE = 10  # per IP
 log = logging.getLogger(__name__)
 
 # OrderIn field -> form field shown to the customer
@@ -35,7 +37,7 @@ _FIELD_MAP = {"customer_name": "name", "phone": "phone", "address": "address", "
 
 def _get_shop(db: Session, slug: str) -> Shop:
     shop = db.scalar(select(Shop).where(Shop.slug == slug)) if len(slug) <= 60 else None
-    if shop is None:
+    if shop is None or not shop.is_active:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     return shop
 
@@ -131,6 +133,7 @@ async def submit_form(
     background: BackgroundTasks,
     db: Session = Depends(get_db),
 ) -> Response:
+    limiter.check(f"form:{client_ip(request)}", FORM_POSTS_PER_MINUTE)
     shop = _get_shop(db, shop_slug)
     form = await request.form()
     values = {k: str(v)[:400] for k, v in form.items() if isinstance(v, str)}

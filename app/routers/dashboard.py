@@ -33,6 +33,7 @@ from app.auth import (
 from app.db import get_db
 from app.enums import Direction, Language, OrderStatus, Role
 from app.models import Customer, MessageLog, Order, Shop, User
+from app.ratelimit import client_ip, limiter
 from app.schemas import OrderItemIn
 from app.services import messages as m
 from app.services.order_admin import ADMIN_ACTIONS, edit_order, resend_confirmation, set_status
@@ -115,7 +116,8 @@ def login(
     password: str = Form(max_length=200),
     db: Session = Depends(get_db),
 ) -> Response:
-    ip = request.client.host if request.client else "?"
+    ip = client_ip(request)
+    limiter.check(f"login:{ip}", 20)
     if login_throttle.blocked(ip, email):
         return templates.TemplateResponse(
             request, "dashboard/login.html",

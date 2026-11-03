@@ -99,6 +99,11 @@ class Shop(Base):
     # Local date of the last daily summary / maintenance (avoids sending it twice).
     last_daily_run_on: Mapped[date | None] = mapped_column(Date)
 
+    # Subscription (Phase 8). An inactive shop keeps its data but nothing is sent.
+    plan: Mapped[str] = mapped_column(String(20), default="trial", server_default="trial")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
+    paid_until: Mapped[date | None] = mapped_column(Date)
+
     # Google Sheets sync (optional): id of the sheet shared with the service account.
     google_sheet_id: Mapped[str | None] = mapped_column(String(100))
 
@@ -269,3 +274,16 @@ class User(Base):
 
     def __repr__(self) -> str:
         return f"<User id={self.id} role={self.role}>"
+
+
+class UsageCounter(Base):
+    """Monthly usage per shop (billing / quotas). Kept even when orders are purged."""
+
+    __tablename__ = "usage_counters"
+    __table_args__ = (UniqueConstraint("shop_id", "month", name="uq_usage_shop_month"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    shop_id: Mapped[int] = mapped_column(ForeignKey("shops.id", ondelete="CASCADE"), index=True)
+    month: Mapped[str] = mapped_column(String(7))  # "2026-11" (UTC)
+    orders: Mapped[int] = mapped_column(Integer, default=0)
+    messages_sent: Mapped[int] = mapped_column(Integer, default=0)

@@ -27,6 +27,8 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.enums import OrderSource
 from app.models import Shop
+from app.plans import limits
+from app.ratelimit import limiter
 from app.schemas import OrderCreatedOut, OrderIn, WebhookResultOut
 from app.security import hash_api_key, verify_base64_hmac
 from app.services.intake import (
@@ -55,6 +57,9 @@ def get_shop_by_api_key(
     shop = db.scalar(select(Shop).where(Shop.api_key_hash == hash_api_key(x_api_key)))
     if shop is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing or invalid API key")
+    if not shop.is_active:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "shop suspended")
+    limiter.check(f"api:{shop.id}", limits(shop.plan).api_requests_per_minute)
     return shop
 
 
@@ -102,6 +107,8 @@ def _process_webhook(
 ) -> WebhookResultOut:
     """Map + create. Data problems return 200 'rejected' so the platform does not retry
     forever (Shopify disables a webhook after repeated failures)."""
+    if not shop.is_active:
+        return WebhookResultOut(status="ignored", reason="shop suspended")
     mapper = order_in_from_shopify if source is OrderSource.SHOPIFY else order_in_from_woocommerce
     try:
         data = mapper(payload)

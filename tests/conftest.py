@@ -41,6 +41,13 @@ def db_session(monkeypatch: pytest.MonkeyPatch) -> Iterator[Session]:
         engine.dispose()
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limits() -> None:
+    from app.ratelimit import limiter
+
+    limiter.reset()
+
+
 @pytest.fixture
 def client(db_session: Session) -> Iterator[TestClient]:
     from app.main import create_app

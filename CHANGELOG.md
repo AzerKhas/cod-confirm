@@ -1,5 +1,13 @@
 # Changelog
 
+## Phase 8 – Multi-tenant & admin
+- Plans (`app/plans.py`): Trial 50 / Starter 300 / Pro 1500 / Business 6000 orders per month (49 / 129 / 349 DT), API rate per plan.
+- `UsageCounter` per shop and month (orders, messages sent), kept even when data is purged; duplicates not counted.
+- Quotas: over the plan +10%, orders are still saved but no WhatsApp message is sent (no lost orders); suspended shops: API 403, form 404, webhooks ignored, nothing sent.
+- Rate limiting (`app/ratelimit.py`, sliding window): intake API per shop and plan, public form 10 POST/min per IP, login 20/min per IP (plus the per-email throttle).
+- Super-admin pages `/admin`: all shops with plan, monthly usage vs quota, WhatsApp status, MRR; create a shop + owner (API key and initial password shown once), subscription (plan, paid until, suspend), WhatsApp / Shopify / WooCommerce credentials (encrypted / never displayed, empty field keeps the stored value), regenerate API key, add staff, reset a password (logs the user out everywhere).
+- Migration `0008`. 432 tests (tenant isolation, access control, quotas, rate limits).
+
 ## Phase 7 – Google Sheets sync (optional per shop)
 - `services/sheets.py`: one row per order in the shop's sheet (tab "Commandes", created with a header if missing), updated in place on every change.
 - Outbox design: every status change / edit flags the order (`sheet_dirty`); the scheduler pushes up to 50 rows per tick with 3 API calls max. Google errors never block WhatsApp and are retried.

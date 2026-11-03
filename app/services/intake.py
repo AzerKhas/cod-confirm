@@ -14,6 +14,7 @@ from app.enums import OrderSource
 from app.models import Customer, Order, Shop
 from app.schemas import OrderIn
 from app.security import mask_phone
+from app.services import usage
 from app.services.orders import record_new_order
 
 log = logging.getLogger(__name__)
@@ -78,6 +79,7 @@ def create_order(db: Session, shop: Shop, data: OrderIn, source: OrderSource) ->
             db.add(order)
             db.flush()
             record_new_order(db, order)
+            usage.bump(db, shop.id, orders=1)
     except IntegrityError:
         if data.external_id:
             existing = _find_external(db, shop, source, data.external_id)

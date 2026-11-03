@@ -13,7 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.auth import LoginRequired
 from app.config import get_settings
 from app.logging_config import configure_logging
-from app.routers import dashboard, health, intake, order_form, webhook_meta
+from app.routers import admin, dashboard, health, intake, order_form, webhook_meta
 
 log = logging.getLogger("cod_confirm")
 
@@ -58,6 +58,7 @@ def create_app() -> FastAPI:
     app.include_router(order_form.router)
     app.include_router(webhook_meta.router)
     app.include_router(dashboard.router)
+    app.include_router(admin.router)
 
     app.add_middleware(
         SessionMiddleware,
