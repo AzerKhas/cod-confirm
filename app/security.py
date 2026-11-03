@@ -1,9 +1,29 @@
-"""Security helpers. Phase 0: masking of personal data / secrets for logs.
+"""Security helpers: intake API keys (hashed), masking of personal data / secrets for logs.
 
 Signature verification, password hashing and encryption are added in later phases.
 """
 
 from __future__ import annotations
+
+import hashlib
+import hmac
+import secrets
+
+API_KEY_PREFIX = "cc_"
+
+
+def generate_api_key() -> tuple[str, str, str]:
+    """Return (plain_key, sha256_hash, display_prefix). Show plain_key once, store the hash."""
+    plain = API_KEY_PREFIX + secrets.token_urlsafe(32)
+    return plain, hash_api_key(plain), plain[:10]
+
+
+def hash_api_key(plain: str) -> str:
+    return hashlib.sha256(plain.encode("utf-8")).hexdigest()
+
+
+def verify_api_key(plain: str, stored_hash: str) -> bool:
+    return hmac.compare_digest(hash_api_key(plain), stored_hash)
 
 
 def mask_phone(phone: str | None) -> str:

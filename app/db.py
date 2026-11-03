@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import Any
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
@@ -15,10 +16,10 @@ class Base(DeclarativeBase):
     """Base class for all ORM models."""
 
 
-def make_engine(url: str) -> Engine:
+def make_engine(url: str, **kwargs: Any) -> Engine:
     """Create an engine; SQLite gets thread-safety + foreign keys enabled."""
     connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
-    engine = create_engine(url, connect_args=connect_args, pool_pre_ping=True)
+    engine = create_engine(url, connect_args=connect_args, pool_pre_ping=True, **kwargs)
 
     if url.startswith("sqlite"):
 

@@ -1,0 +1,4 @@
+# Keep LF in the repo (Dockerfile / shell scripts run on Linux).
+* text=auto eol=lf
+*.png binary
+*.ico binary

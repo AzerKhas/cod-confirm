@@ -12,20 +12,18 @@ os.environ.setdefault("DRY_RUN", "true")
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.config import get_settings
-from app.db import Base, get_db
+from app.db import Base, get_db, make_engine
 
 
 @pytest.fixture
 def db_session() -> Iterator[Session]:
     # StaticPool = one shared connection, so the in-memory DB survives across sessions.
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
+    # make_engine also turns on SQLite foreign keys (needed for ON DELETE CASCADE).
+    engine = make_engine("sqlite://", poolclass=StaticPool)
     Base.metadata.create_all(engine)
     session = sessionmaker(bind=engine, expire_on_commit=False)()
     try:

@@ -16,7 +16,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 | Phase | Content | State |
 |------:|---------|-------|
 | 0 | Setup: skeleton, config, DB, Alembic, Docker, `/health`, tests | ✅ |
-| 1 | Models & order state machine | ⏳ |
+| 1 | Models & order state machine | ✅ |
 | 2 | Order intake (API, Shopify, WooCommerce, form) | ⏳ |
 | 3 | WhatsApp Cloud API + webhook | ⏳ |
 | 4 | Conversation logic (intent, i18n, opt-out, 24h window) | ⏳ |

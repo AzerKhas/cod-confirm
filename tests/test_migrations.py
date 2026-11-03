@@ -17,3 +17,18 @@ def test_alembic_upgrade_head(tmp_path: Path) -> None:
     cfg.cmd_opts = type("Opts", (), {"x": [f"url=sqlite:///{db_file.as_posix()}"]})()  # type: ignore[assignment]
     command.upgrade(cfg, "head")
     assert db_file.exists()
+
+    # The migrated schema must match the models (no missing migration).
+    from alembic.autogenerate import compare_metadata
+    from alembic.migration import MigrationContext
+
+    import app.models  # noqa: F401
+    from app.db import Base, make_engine
+
+    engine = make_engine(f"sqlite:///{db_file.as_posix()}")
+    with engine.connect() as conn:
+        diff = compare_metadata(MigrationContext.configure(conn), Base.metadata)
+    engine.dispose()
+    assert diff == [], f"models and migrations differ: {diff}"
+
+    command.downgrade(cfg, "base")
