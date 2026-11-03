@@ -15,17 +15,21 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app import db as db_module
 from app.config import get_settings
 from app.db import Base, get_db, make_engine
 
 
 @pytest.fixture
-def db_session() -> Iterator[Session]:
+def db_session(monkeypatch: pytest.MonkeyPatch) -> Iterator[Session]:
     # StaticPool = one shared connection, so the in-memory DB survives across sessions.
     # make_engine also turns on SQLite foreign keys (needed for ON DELETE CASCADE).
     engine = make_engine("sqlite://", poolclass=StaticPool)
     Base.metadata.create_all(engine)
-    session = sessionmaker(bind=engine, expire_on_commit=False)()
+    factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+    # Background jobs / scheduler open their own sessions through app.db.SessionLocal.
+    monkeypatch.setattr(db_module, "SessionLocal", factory)
+    session = factory()
     try:
         yield session
     finally:

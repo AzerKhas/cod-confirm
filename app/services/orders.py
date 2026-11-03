@@ -108,9 +108,7 @@ def transition(
         raise InvalidTransition(from_status, to_status, actor)
 
     order.status = to_status
-    event = Event(
-        order=order, from_status=from_status, to_status=to_status, actor=actor, note=note
-    )
+    event = Event(order=order, from_status=from_status, to_status=to_status, actor=actor, note=note)
     db.add(event)
 
     if to_status is S.REFUSED:

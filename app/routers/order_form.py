@@ -10,7 +10,7 @@ import logging
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from pydantic import ValidationError
 from sqlalchemy import select
@@ -22,6 +22,7 @@ from app.models import Shop
 from app.schemas import OrderIn
 from app.services.intake import create_order
 from app.services.messages import TN_GOVERNORATES, form_texts
+from app.services.notify import send_order_confirmation_job
 from app.templating import templates
 
 router = APIRouter(tags=["form"], include_in_schema=False)
@@ -125,7 +126,10 @@ def _build_item(
 
 @router.post("/form/{shop_slug}", response_class=HTMLResponse)
 async def submit_form(
-    shop_slug: str, request: Request, db: Session = Depends(get_db)
+    shop_slug: str,
+    request: Request,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
 ) -> Response:
     shop = _get_shop(db, shop_slug)
     form = await request.form()
@@ -166,5 +170,7 @@ async def submit_form(
     if errors or data is None:
         return _render(request, shop, lang, values, errors, status.HTTP_400_BAD_REQUEST)
 
-    create_order(db, shop, data, OrderSource.FORM)
+    result = create_order(db, shop, data, OrderSource.FORM)
+    if result.created:
+        background.add_task(send_order_confirmation_job, result.order.id)
     return RedirectResponse(done_url, status_code=status.HTTP_303_SEE_OTHER)

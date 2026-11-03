@@ -200,9 +200,14 @@ class MessageLog(Base):
     order_id: Mapped[int | None] = mapped_column(
         ForeignKey("orders.id", ondelete="CASCADE"), index=True
     )
+    customer_id: Mapped[int | None] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), index=True
+    )
     direction: Mapped[Direction] = mapped_column(_enum(Direction))
     type: Mapped[MessageType] = mapped_column(_enum(MessageType))
     content: Mapped[str] = mapped_column(Text, default="")
+    # Button payload (e.g. "CONFIRM:42") for incoming button replies.
+    payload: Mapped[str | None] = mapped_column(String(256))
     wa_message_id: Mapped[str | None] = mapped_column(String(128), unique=True, index=True)
     status: Mapped[MessageStatus] = mapped_column(
         _enum(MessageStatus), default=MessageStatus.QUEUED

@@ -18,7 +18,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 | 0 | Setup: skeleton, config, DB, Alembic, Docker, `/health`, tests | ✅ |
 | 1 | Models & order state machine | ✅ |
 | 2 | Order intake (API, Shopify, WooCommerce, form) | ✅ |
-| 3 | WhatsApp Cloud API + webhook | ⏳ |
+| 3 | WhatsApp Cloud API + webhook | ✅ |
 | 4 | Conversation logic (intent, i18n, opt-out, 24h window) | ⏳ |
 | 5 | Scheduler (reminders, quiet hours) | ⏳ |
 | 6 | Dashboard | ⏳ |
@@ -85,6 +85,13 @@ curl -X POST http://127.0.0.1:8000/api/orders -H "X-API-Key: cc_..." -H "Content
 
 Phone numbers are normalized to `+216XXXXXXXX`; only Tunisian mobiles (2x, 4x, 5x, 9x) are accepted.
 Shopify paid orders and WooCommerce non-COD orders are ignored. Re-sent webhooks never create duplicates.
+
+## WhatsApp
+
+- Setup of the Meta app, numbers and tokens: [docs/meta-setup.md](docs/meta-setup.md)
+- Exact templates to submit (Darija / Arabic / French): [docs/whatsapp-templates.md](docs/whatsapp-templates.md)
+- Webhook URL for Meta: `https://<your-domain>/webhook/meta`
+- `DRY_RUN=true` logs messages instead of sending them.
 
 ## Database migrations
 

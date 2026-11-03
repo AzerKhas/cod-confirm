@@ -125,8 +125,11 @@ def order_in_from_shopify(p: dict[str, Any]) -> OrderIn:
             "address": _join(addr.get("address1"), addr.get("address2")),
             "city": addr.get("city") or addr.get("province") or "",
             "items": [
-                {"name": li.get("title") or li.get("name"), "qty": li.get("quantity"),
-                 "price": li.get("price")}
+                {
+                    "name": li.get("title") or li.get("name"),
+                    "qty": li.get("quantity"),
+                    "price": li.get("price"),
+                }
                 for li in p.get("line_items") or []
             ],
             "total": p.get("total_price"),

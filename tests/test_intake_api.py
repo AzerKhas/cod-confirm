@@ -47,7 +47,15 @@ def test_create_order(client: TestClient, db_session: Session, shop_key: tuple[A
     assert order.total == Decimal("118.000")  # computed: 2 x 59
     assert order.items == [{"name": "Skmei 1251 noir", "qty": 2, "price": "59.000"}]
     assert order.source is OrderSource.API
-    assert [e.to_status for e in order.events] == [OrderStatus.NEW]
+    # The confirmation was sent in the background (DRY_RUN) right after the response.
+    db_session.expire_all()
+    assert order.status is OrderStatus.AWAITING_CONFIRMATION
+    assert [e.to_status for e in order.events] == [
+        OrderStatus.NEW,
+        OrderStatus.AWAITING_CONFIRMATION,
+    ]
+    assert len(order.messages) == 1
+    assert order.messages[0].content.startswith("Salam Ahmed")
 
 
 def test_given_total_is_kept(
@@ -110,7 +118,8 @@ def test_same_customer_reused(
     assert len(customers) == 1
     assert customers[0].total_orders == 2
     assert customers[0].name == "Ahmed B."
-    assert db_session.scalar(select(func.count()).select_from(Event)) == 2
+    # 2 orders x (NEW + AWAITING_CONFIRMATION after the background send)
+    assert db_session.scalar(select(func.count()).select_from(Event)) == 4
 
 
 def test_shops_are_isolated(client: TestClient, db_session: Session) -> None:

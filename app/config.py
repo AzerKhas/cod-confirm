@@ -5,6 +5,7 @@ Secrets are typed as `SecretStr` so they never appear in reprs or logs.
 
 from __future__ import annotations
 
+import base64
 from functools import lru_cache
 from typing import Literal
 
@@ -32,6 +33,11 @@ class Settings(BaseSettings):
     meta_graph_api_version: str = "v21.0"
     meta_app_secret: SecretStr = SecretStr("")
     meta_verify_token: SecretStr = SecretStr("")
+    # Meta has no "Darija" language: Latin-script Darija templates are registered under
+    # this language code (see docs/whatsapp-templates.md).
+    whatsapp_darija_template_language: str = "fr"
+    whatsapp_timeout_seconds: float = 10.0
+    whatsapp_max_attempts: int = Field(default=3, ge=1, le=6)
 
     # Defaults
     default_timezone: str = "Africa/Tunis"
@@ -52,6 +58,12 @@ class Settings(BaseSettings):
                 raise ValueError("SECRET_KEY must be at least 32 characters in prod")
             if not self.dry_run and not self.meta_app_secret.get_secret_value():
                 raise ValueError("META_APP_SECRET is required when DRY_RUN=false in prod")
+            key = self.encryption_key.get_secret_value()
+            try:
+                if len(base64.urlsafe_b64decode(key.encode())) != 32:
+                    raise ValueError
+            except ValueError as exc:
+                raise ValueError("ENCRYPTION_KEY must be a Fernet key in prod") from exc
         return self
 
 

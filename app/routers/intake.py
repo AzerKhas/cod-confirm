@@ -9,7 +9,16 @@ import json
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    Header,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 from fastapi.concurrency import run_in_threadpool
 from pydantic import ValidationError
 from sqlalchemy import select
@@ -27,6 +36,7 @@ from app.services.intake import (
     order_in_from_shopify,
     order_in_from_woocommerce,
 )
+from app.services.notify import send_order_confirmation_job
 from app.services.orders import is_risky
 
 router = APIRouter(tags=["intake"])
@@ -107,6 +117,11 @@ def _process_webhook(
     return _to_webhook_result(create_order(db, shop, data, source))
 
 
+def _schedule_confirmation(background: BackgroundTasks, result: WebhookResultOut) -> None:
+    if result.status == "created" and result.order_id is not None:
+        background.add_task(send_order_confirmation_job, result.order_id)
+
+
 # ---------------------------------------------------------------- generic API
 @router.post(
     "/api/orders",
@@ -117,12 +132,15 @@ def _process_webhook(
 def post_order(
     data: OrderIn,
     response: Response,
+    background: BackgroundTasks,
     shop: Shop = Depends(get_shop_by_api_key),
     db: Session = Depends(get_db),
 ) -> OrderCreatedOut:
     """Create an order. Auth: header `X-API-Key: cc_...` (one key per shop)."""
     result = create_order(db, shop, data, OrderSource.API)
-    if not result.created:
+    if result.created:
+        background.add_task(send_order_confirmation_job, result.order.id)
+    else:
         response.status_code = status.HTTP_200_OK
     order = result.order
     return OrderCreatedOut(
@@ -139,6 +157,7 @@ def post_order(
 async def shopify_webhook(
     shop_slug: str,
     request: Request,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     x_shopify_hmac_sha256: str | None = Header(default=None),
     x_shopify_topic: str | None = Header(default=None),
@@ -152,7 +171,9 @@ async def shopify_webhook(
     if x_shopify_topic != "orders/create":
         return WebhookResultOut(status="ignored", reason=f"topic={x_shopify_topic}")
     payload = _parse_json(body)
-    return await run_in_threadpool(_process_webhook, db, shop, payload, OrderSource.SHOPIFY)
+    result = await run_in_threadpool(_process_webhook, db, shop, payload, OrderSource.SHOPIFY)
+    _schedule_confirmation(background, result)
+    return result
 
 
 # --------------------------------------------------------------- WooCommerce
@@ -160,6 +181,7 @@ async def shopify_webhook(
 async def woocommerce_webhook(
     shop_slug: str,
     request: Request,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     x_wc_webhook_signature: str | None = Header(default=None),
     x_wc_webhook_topic: str | None = Header(default=None),
@@ -178,4 +200,6 @@ async def woocommerce_webhook(
     if x_wc_webhook_topic != "order.created":
         return WebhookResultOut(status="ignored", reason=f"topic={x_wc_webhook_topic}")
     payload = _parse_json(body)
-    return await run_in_threadpool(_process_webhook, db, shop, payload, OrderSource.WOOCOMMERCE)
+    result = await run_in_threadpool(_process_webhook, db, shop, payload, OrderSource.WOOCOMMERCE)
+    _schedule_confirmation(background, result)
+    return result
