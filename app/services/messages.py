@@ -256,3 +256,77 @@ def format_amount(amount: Decimal) -> str:
 def items_summary(items: Sequence[dict[str, Any]], max_len: int = 120) -> str:
     parts = [f"{int(i.get('qty', 1))}× {i.get('name', '')}" for i in items]
     return clean_param(", ".join(parts), max_len)
+
+
+# =============================================================================
+# Free-form replies (only inside the 24h customer-service window)
+# =============================================================================
+# {name} = customer first name, {shop} = shop name.
+
+REPLIES: dict[Language, dict[str, str]] = {
+    Language.DARIJA: {
+        "confirmed": "Ya3tik essa7a {name} ✅ Commande mte3ek tconfirmet. "
+        "Bech nab3thouhalek fi a9rab wa9t 🚚",
+        "already_confirmed": "Commande mte3ek deja mconfirmia 👍 Ken 3andek sou2el, ekteb lena.",
+        "cancelled": "Mrigel {name}, l commande tannulet ❌ Ken tbaddel ra2yek, "
+        "a3mel commande jdida wa9t ma t7eb 🙏",
+        "already_cancelled": "Hedhi l commande deja mannulia. Ken t7eb, a3mel commande jdida 🙏",
+        "modify_ask": "Mrigel ✏️ Ekteblna chnowa t7eb tbaddel (l'adresse, l 9yas, l lon, "
+        "l 9adr…) w {shop} bech yetsel bik.",
+        "modify_ack": "Wselna 👍 {shop} bech ychouf w yetsel bik.",
+        "shipped_locked": "Commande mte3ek 5arjet m3a el livreur 🚚 Bech tbaddel wala "
+        "tannuli, ekteb lel {shop} direct.",
+        "question_ack": "Sou2alek wsel lel {shop} 👍 Bech yjawbouk fi a9rab wa9t.",
+        "clarify": "Samahni {name}, ma fhemtekch 🙏 Tconfirmi l commande ?",
+        "stopped": "Mrigel, ma3adech nab3thoulek messaget 👍 Ken t7eb tarja3, ekteb START.",
+        "resubscribed": "Mar7be bik ! Rja3t tousslek les messages 👍",
+        "no_order": "Salam 👋 Ma l9inech commande mafthou7a b noumrou hedha. "
+        "Ken 3andek sou2el, ekteb lel {shop}.",
+    },
+    Language.ARABIC: {
+        "confirmed": "شكرا {name} ✅ تم تأكيد طلبك. سنرسله لك في أقرب وقت 🚚",
+        "already_confirmed": "طلبك مؤكد من قبل 👍 إذا عندك سؤال، اكتب لنا.",
+        "cancelled": "حاضر {name}، تم إلغاء الطلب ❌ إذا غيرت رأيك، يمكنك الطلب من جديد 🙏",
+        "already_cancelled": "هذا الطلب ملغى من قبل. يمكنك القيام بطلب جديد 🙏",
+        "modify_ask": "حاضر ✏️ اكتب لنا ماذا تريد أن تغير (العنوان، المقاس، اللون، الكمية…) "
+        "وسيتصل بك {shop}.",
+        "modify_ack": "وصلنا 👍 سيتصل بك {shop} قريبا.",
+        "shipped_locked": "طلبك خرج مع عون التوصيل 🚚 للتغيير أو الإلغاء، اتصل بـ {shop} مباشرة.",
+        "question_ack": "وصل سؤالك إلى {shop} 👍 سيجيبك في أقرب وقت.",
+        "clarify": "عذرا {name}، لم أفهم 🙏 هل تؤكد الطلب؟",
+        "stopped": "حاضر، لن نرسل لك رسائل بعد الآن 👍 للعودة، اكتب START.",
+        "resubscribed": "مرحبا بك من جديد ! ستصلك الرسائل 👍",
+        "no_order": "مرحبا 👋 لم نجد طلبا مفتوحا بهذا الرقم. إذا عندك سؤال، اكتب إلى {shop}.",
+    },
+    Language.FRENCH: {
+        "confirmed": "Merci {name} ✅ Votre commande est confirmée. "
+        "Nous l'expédions très bientôt 🚚",
+        "already_confirmed": "Votre commande est déjà confirmée 👍 Une question ? Écrivez-nous.",
+        "cancelled": "C'est noté {name}, la commande est annulée ❌ "
+        "Vous pouvez recommander quand vous voulez 🙏",
+        "already_cancelled": "Cette commande est déjà annulée. Vous pouvez en passer une "
+        "nouvelle 🙏",
+        "modify_ask": "D'accord ✏️ Dites-nous ce que vous voulez changer (adresse, taille, "
+        "couleur, quantité…) et {shop} vous recontacte.",
+        "modify_ack": "Bien reçu 👍 {shop} va vous recontacter.",
+        "shipped_locked": "Votre commande est déjà chez le livreur 🚚 Pour la modifier ou "
+        "l'annuler, contactez {shop} directement.",
+        "question_ack": "Votre question est transmise à {shop} 👍 Réponse très bientôt.",
+        "clarify": "Désolé {name}, je n'ai pas compris 🙏 Confirmez-vous la commande ?",
+        "stopped": "C'est noté, vous ne recevrez plus de messages 👍 Pour revenir, écrivez START.",
+        "resubscribed": "Re-bienvenue ! Vous recevrez à nouveau nos messages 👍",
+        "no_order": "Bonjour 👋 Aucune commande en cours avec ce numéro. "
+        "Pour toute question, écrivez à {shop}.",
+    },
+}
+
+# Interactive reply buttons (max 20 characters each).
+REPLY_BUTTONS: dict[Language, tuple[str, str, str]] = {
+    Language.DARIJA: ("✅ Nconfirmi", "✏️ Nbaddel haja", "❌ Nannuli"),
+    Language.ARABIC: ("✅ تأكيد", "✏️ تعديل", "❌ إلغاء"),
+    Language.FRENCH: ("✅ Confirmer", "✏️ Modifier", "❌ Annuler"),
+}
+
+
+def reply_text(language: Language, key: str, *, name: str = "", shop: str = "") -> str:
+    return REPLIES[language][key].format(name=name, shop=shop).replace("  ", " ")

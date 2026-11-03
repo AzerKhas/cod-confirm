@@ -19,7 +19,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 | 1 | Models & order state machine | ✅ |
 | 2 | Order intake (API, Shopify, WooCommerce, form) | ✅ |
 | 3 | WhatsApp Cloud API + webhook | ✅ |
-| 4 | Conversation logic (intent, i18n, opt-out, 24h window) | ⏳ |
+| 4 | Conversation logic (intent, i18n, opt-out, 24h window) | ✅ |
 | 5 | Scheduler (reminders, quiet hours) | ⏳ |
 | 6 | Dashboard | ⏳ |
 | 7 | Google Sheets sync | ⏳ |
@@ -92,6 +92,23 @@ Shopify paid orders and WooCommerce non-COD orders are ignored. Re-sent webhooks
 - Exact templates to submit (Darija / Arabic / French): [docs/whatsapp-templates.md](docs/whatsapp-templates.md)
 - Webhook URL for Meta: `https://<your-domain>/webhook/meta`
 - `DRY_RUN=true` logs messages instead of sending them.
+
+## Conversation
+
+| Customer writes | Bot does |
+|---|---|
+| `ey`, `behi`, `oui`, `نعم`, `1`, ✅, button *Nconfirmi* | order → CONFIRMED, thank-you |
+| `la`, `ma n7ebch`, `annuler`, `لا`, `3`, ❌ | order → CANCELLED, owner alerted |
+| `n7eb nbaddel l adresse`, `modifier`, `تعديل`, `2` | order → MODIFY_REQUESTED, asks what to change, owner alerted |
+| `9adech l livraison?` | owner alerted, "the shop will answer" |
+| `STOP`, `ma t3awedch`, `توقف` | opted out forever (until `START`) |
+| anything else | clarification with buttons (max 2), then the owner |
+
+Owner alerts go to Telegram: create a bot with @BotFather → `TELEGRAM_BOT_TOKEN`, and set the
+owner's chat id in `shops.owner_telegram_chat_id`.
+
+Optional LLM fallback for replies the rules don't understand:
+`pip install -r requirements-llm.txt`, then `INTENT_LLM_ENABLED=true` and `ANTHROPIC_API_KEY=...`.
 
 ## Database migrations
 

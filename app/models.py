@@ -94,6 +94,9 @@ class Shop(Base):
     delivery_fee: Mapped[Decimal] = mapped_column(Money, default=Decimal("7.000"))
     data_retention_days: Mapped[int] = mapped_column(Integer, default=365)
 
+    # Telegram chat id of the owner, for alerts (modification requests, questions).
+    owner_telegram_chat_id: Mapped[str | None] = mapped_column(String(40))
+
     # Webhook signing secrets (encrypted at rest in Phase 9).
     shopify_webhook_secret: Mapped[str | None] = mapped_column(Text)
     woocommerce_webhook_secret: Mapped[str | None] = mapped_column(Text)

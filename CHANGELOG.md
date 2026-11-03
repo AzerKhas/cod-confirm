@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase 4 – Conversation logic
+- `services/intent.py`: rule-based intent detection for Tunisian Darija (Latin + digits), Arabic and French: normalization (accents, Arabic diacritics/letter forms, Arabic-Indic digits, stretched letters), button payloads, 1/2/3 shortcuts, emojis, negations (`ma nconfirmich`, `je confirme pas`), weak words (`la`, `non`, `ok`) only counted in short replies, questions detected.
+- Optional LLM fallback (`INTENT_LLM_ENABLED`, official `anthropic` SDK, `requirements-llm.txt`) only when the rules return UNKNOWN; errors / refusals fall back safely.
+- `services/conversation.py`: CONFIRM / CANCEL / MODIFY / QUESTION / STOP / START handling with replies in the customer's language (Arabic detected automatically), state machine transitions as `customer`, cancel after shipping refused, free text after a modification request forwarded once, max 2 clarifications (with buttons) then the owner takes over.
+- Opt-out: `STOP`, `ma t3awedch`, `توقف`, `arrête`... → never messaged again (templates included), one final acknowledgment; `START` opts back in.
+- 24h customer-service window enforced for every free-form reply.
+- `services/alerts.py`: owner alerts through a Telegram bot (`TELEGRAM_BOT_TOKEN` + `shops.owner_telegram_chat_id`).
+- Migration `0004`. 368 tests (≈100 real replies in Darija / Arabic / French).
+
 ## Phase 3 – WhatsApp Cloud API
 - `services/whatsapp.py`: official Cloud API client (`send_template`, `send_text`, `send_buttons`, `mark_as_read`), exponential-backoff retries on network errors / 429 / 5xx / Meta transient codes, permanent errors raised at once (24h-window error detected), no token or full phone in errors or logs.
 - `DRY_RUN` mode: nothing sent, payload logged (phone masked), fake `dryrun.<uuid>` id; whole flow testable without Meta.

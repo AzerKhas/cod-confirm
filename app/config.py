@@ -39,6 +39,17 @@ class Settings(BaseSettings):
     whatsapp_timeout_seconds: float = 10.0
     whatsapp_max_attempts: int = Field(default=3, ge=1, le=6)
 
+    # Intent detection: optional LLM fallback when the rules don't understand a reply.
+    intent_llm_enabled: bool = False
+    anthropic_api_key: SecretStr = SecretStr("")
+    intent_llm_model: str = "claude-opus-5-5"
+
+    # Shop-owner alerts (modification requests, questions) through a Telegram bot.
+    telegram_bot_token: SecretStr = SecretStr("")
+
+    # Conversation safety: max "I didn't understand" replies per order.
+    max_clarifications: int = Field(default=2, ge=0, le=5)
+
     # Defaults
     default_timezone: str = "Africa/Tunis"
     default_language: Language = "darija"

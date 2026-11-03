@@ -234,3 +234,16 @@ def test_failed_status_records_error(
     db_session.expire_all()
     assert msg.status is MessageStatus.FAILED
     assert msg.error == "131026: Message undeliverable"
+
+
+def test_end_to_end_reply_confirms_order(
+    meta_client: TestClient, setup: Any, db_session: Session
+) -> None:
+    """Webhook -> stored -> intent -> order CONFIRMED -> thank-you reply logged (DRY_RUN)."""
+    _shop, _customer, order = setup
+    post(meta_client, envelope([text_msg("wamid.E2E", "Eyyy nconfirmi 👍")]))
+    db_session.expire_all()
+    assert order.status is OrderStatus.CONFIRMED
+    out = [mm for mm in order.messages if mm.direction is Direction.OUT]
+    assert out and out[-1].content.startswith("Ya3tik essa7a")
+    assert out[-1].wa_message_id.startswith("dryrun.")  # type: ignore[union-attr]

@@ -1,0 +1,2 @@
+# Optional: LLM fallback for intent detection (INTENT_LLM_ENABLED=true).
+anthropic>=1.0
