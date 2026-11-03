@@ -1,0 +1,21 @@
+{% from "dashboard/_macros.html" import badge, risk %}
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+  <thead class="text-xs uppercase text-slate-500">
+    <tr><th class="py-2">#</th><th>Client</th><th>Téléphone</th><th>Ville</th><th>Produits</th><th class="text-right">Total</th><th>Statut</th></tr>
+  </thead>
+  <tbody class="divide-y">
+    {% for o in orders %}
+    <tr class="hover:bg-slate-50">
+      <td class="py-2"><a class="font-medium text-emerald-700 hover:underline" href="/dashboard/orders/{{ o.id }}">{{ o.id }}</a></td>
+      <td>{{ o.customer.name }}{{ risk(o.customer) }}{% if o.customer.opted_out %} <span class="text-xs text-slate-400">(STOP)</span>{% endif %}</td>
+      <td dir="ltr" class="whitespace-nowrap">{{ o.customer.phone_e164 }}</td>
+      <td>{{ o.city }}</td>
+      <td class="max-w-xs truncate">{{ items_summary(o.items) }}</td>
+      <td class="whitespace-nowrap text-right">{{ fmt(o.total) }} DT</td>
+      <td>{{ badge(o.status, status_labels) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>

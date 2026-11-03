@@ -35,6 +35,7 @@ from app.enums import (
     MessageType,
     OrderSource,
     OrderStatus,
+    Role,
 )
 
 
@@ -176,6 +177,8 @@ class Order(Base):
     )
     source: Mapped[OrderSource] = mapped_column(_enum(OrderSource))
     reminders_sent: Mapped[int] = mapped_column(Integer, default=0)
+    # When the "order shipped" WhatsApp notice went out (None = still to send).
+    shipped_notified_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     last_contacted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
@@ -236,3 +239,27 @@ class Event(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
     order: Mapped[Order] = relationship(back_populates="events")
+
+
+class User(Base):
+    """Dashboard account. Passwords are stored as scrypt hashes only."""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    shop_id: Mapped[int | None] = mapped_column(
+        ForeignKey("shops.id", ondelete="CASCADE"), index=True
+    )
+    email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    role: Mapped[Role] = mapped_column(_enum(Role), default=Role.OWNER)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Bumped on password change / logout-everywhere: invalidates existing sessions.
+    session_version: Mapped[int] = mapped_column(Integer, default=1)
+    last_login_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+    shop: Mapped[Shop | None] = relationship()
+
+    def __repr__(self) -> str:
+        return f"<User id={self.id} role={self.role}>"

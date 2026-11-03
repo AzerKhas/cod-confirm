@@ -6,11 +6,14 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse
+from starlette.middleware.sessions import SessionMiddleware
 
+from app.auth import LoginRequired
 from app.config import get_settings
 from app.logging_config import configure_logging
-from app.routers import health, intake, order_form, webhook_meta
+from app.routers import dashboard, health, intake, order_form, webhook_meta
 
 log = logging.getLogger("cod_confirm")
 
@@ -54,6 +57,25 @@ def create_app() -> FastAPI:
     app.include_router(intake.router)
     app.include_router(order_form.router)
     app.include_router(webhook_meta.router)
+    app.include_router(dashboard.router)
+
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.secret_key.get_secret_value(),
+        session_cookie="cc_session",
+        max_age=7 * 24 * 3600,
+        same_site="lax",
+        https_only=settings.app_env == "prod",
+    )
+
+    @app.exception_handler(LoginRequired)
+    async def _login_required(_request: Request, _exc: LoginRequired) -> RedirectResponse:
+        return RedirectResponse("/login", status_code=303)
+
+    @app.get("/", include_in_schema=False)
+    def root() -> RedirectResponse:
+        return RedirectResponse("/dashboard", status_code=307)
+
     return app
 
 

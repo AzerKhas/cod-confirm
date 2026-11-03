@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase 6 – Dashboard
+- `User` model (owner / staff / superadmin), scrypt password hashing, signed session cookie (HttpOnly, SameSite=Lax, Secure in prod) with `session_version` revocation, session renewed on login, login throttling (5 failures / 15 min), no user enumeration (constant-time dummy hash).
+- CSRF token on every dashboard POST (form field or `X-CSRF-Token` header for HTMX).
+- Pages (Jinja2 + HTMX + Tailwind, responsive): KPIs (today / 7 / 30 days: confirmation, cancellation, no-answer, refusal rates, delivery fees saved), "to handle" list, today's orders, orders with live search + status filter + pagination, order detail with WhatsApp conversation, timeline, risk badge, call / WhatsApp links.
+- Actions: confirm by phone, cancel, ship (sends the "order shipped" template, postponed by the scheduler during quiet hours), delivered, refused (updates risk score), edit order (a MODIFY_REQUESTED order goes back to the customer for confirmation), re-send confirmation, delete a customer's data (owner only).
+- CSV export (UTF-8 BOM for Excel, `;` separator, formula-injection safe), shop settings page (language, delivery fee, reminder delays, retention, Telegram, form catalog).
+- Strict tenant isolation: another shop's order / customer is a 404 (tested).
+- `scripts/create_user.py`, `scripts/seed_demo.py` (demo clothing shop with realistic fake data). Migration `0006`. 410 tests.
+
 ## Phase 5 – Scheduler
 - `services/scheduler.py`: `tick()` every `SCHEDULER_INTERVAL_SECONDS` (APScheduler, started in the app lifespan, single instance), idempotent jobs, one shop's error never blocks the others.
 - Pending confirmations: night orders, failed sends and missed background jobs are sent at the next allowed time; gives up after `MAX_SEND_FAILURES`.

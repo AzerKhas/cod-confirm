@@ -54,3 +54,9 @@ class MessageStatus(StrEnum):
     DELIVERED = "delivered"
     READ = "read"
     FAILED = "failed"
+
+
+class Role(StrEnum):
+    OWNER = "owner"  # shop owner: full access to their shop
+    STAFF = "staff"  # shop employee: orders only
+    SUPERADMIN = "superadmin"  # COD Confirm operator: all shops (Phase 8)

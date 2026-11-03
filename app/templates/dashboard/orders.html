@@ -1,0 +1,25 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Commandes – {{ shop.name }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center gap-2">
+  <h1 class="mr-auto text-xl font-bold">Commandes</h1>
+  <a id="export" href="/dashboard/export.csv?status={{ status_filter }}&q={{ q|urlencode }}"
+     class="rounded-lg bg-white px-3 py-1.5 text-sm shadow-sm hover:bg-slate-50">⬇ Export CSV</a>
+</div>
+
+<form class="mb-4 flex flex-wrap gap-2" hx-get="/dashboard/orders" hx-target="#orders-table"
+      hx-trigger="change, keyup changed delay:400ms from:#q" hx-push-url="true">
+  <input id="q" name="q" value="{{ q }}" placeholder="Nom, téléphone, ville ou n°" maxlength="60"
+         class="w-64 rounded-lg border border-slate-300 px-3 py-1.5 text-sm">
+  <select name="status" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm">
+    <option value="">Tous les statuts</option>
+    {% for st, label in status_labels.items() %}
+      <option value="{{ st.value }}" {% if status_filter == st.value %}selected{% endif %}>{{ label[0] }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+<div id="orders-table" class="rounded-2xl bg-white p-4 shadow-sm">
+  {% include "dashboard/_orders_table.html" %}
+</div>
+{% endblock %}

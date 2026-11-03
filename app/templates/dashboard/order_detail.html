@@ -1,0 +1,125 @@
+{% extends "dashboard/layout.html" %}
+{% from "dashboard/_macros.html" import badge, risk %}
+{% block title %}Commande #{{ order.id }} – {{ shop.name }}{% endblock %}
+{% block content %}
+{% set flashes = {'status': 'Statut mis à jour.', 'edited': 'Commande modifiée.', 'resent': 'Confirmation renvoyée sur WhatsApp.',
+                  'not_sent': "Message non envoyé (client STOP ou erreur WhatsApp).", 'invalid': 'Action impossible ou données invalides.'} %}
+{% if flash in flashes %}
+  <div class="mb-4 rounded-lg {{ 'bg-red-50 text-red-700' if flash in ('invalid', 'not_sent') else 'bg-emerald-50 text-emerald-800' }} p-3 text-sm">{{ flashes[flash] }}</div>
+{% endif %}
+
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <a href="/dashboard/orders" class="text-sm text-slate-500">← Commandes</a>
+  <h1 class="text-xl font-bold">Commande #{{ order.id }}</h1>
+  {{ badge(order.status, status_labels) }}
+</div>
+
+<div class="grid gap-4 lg:grid-cols-3">
+  <section class="space-y-4 lg:col-span-1">
+    <div class="rounded-2xl bg-white p-4 shadow-sm">
+      <h2 class="mb-2 font-semibold">Client</h2>
+      <p class="font-medium">{{ customer.name }}{{ risk(customer) }}</p>
+      <p dir="ltr"><a class="text-emerald-700" href="tel:{{ customer.phone_e164 }}">{{ customer.phone_e164 }}</a>
+         · <a class="text-emerald-700" href="https://wa.me/{{ customer.phone_e164[1:] }}" target="_blank" rel="noopener">WhatsApp</a></p>
+      <p class="mt-1 text-sm text-slate-500">{{ customer.total_orders }} commande(s) · {{ customer.total_refused }} refus · risque {{ customer.risk_score }}/100</p>
+      {% if customer.opted_out %}<p class="mt-1 text-sm text-red-600">A demandé STOP : ne reçoit plus de messages.</p>{% endif %}
+      {% if risky %}<p class="mt-2 rounded bg-rose-50 p-2 text-sm text-rose-800">⚠ Ce client a déjà refusé des colis. Appelez-le avant d'expédier.</p>{% endif %}
+    </div>
+
+    <div class="rounded-2xl bg-white p-4 shadow-sm">
+      <h2 class="mb-2 font-semibold">Actions</h2>
+      <div class="flex flex-wrap gap-2">
+        {% for to, label in actions %}
+          <form method="post" action="/dashboard/orders/{{ order.id }}/status">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+            <input type="hidden" name="to" value="{{ to.value }}">
+            <button class="rounded-lg px-3 py-1.5 text-sm font-medium {{ 'bg-red-50 text-red-700' if to.value in ('CANCELLED', 'REFUSED') else 'bg-emerald-600 text-white' }}">{{ label }}</button>
+          </form>
+        {% endfor %}
+        {% if can_resend and not customer.opted_out %}
+          <form method="post" action="/dashboard/orders/{{ order.id }}/resend">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+            <button class="rounded-lg bg-slate-100 px-3 py-1.5 text-sm">↻ Renvoyer la confirmation</button>
+          </form>
+        {% endif %}
+        {% if not actions and not can_resend %}<p class="text-sm text-slate-500">Commande terminée.</p>{% endif %}
+      </div>
+    </div>
+
+    {% if user.role.value == 'owner' %}
+    <form method="post" action="/dashboard/customers/{{ customer.id }}/delete"
+          onsubmit="return confirm('Supprimer définitivement ce client, ses commandes et ses messages ?');">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <button class="text-xs text-slate-400 hover:text-red-600">Supprimer les données de ce client</button>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="space-y-4 lg:col-span-2">
+    <div class="rounded-2xl bg-white p-4 shadow-sm">
+      <h2 class="mb-2 font-semibold">Commande</h2>
+      {% if editable %}
+      <form method="post" action="/dashboard/orders/{{ order.id }}/edit" class="space-y-3 text-sm">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <div class="space-y-2" id="items">
+          {% for it in order['items'] %}
+          <div class="flex gap-2">
+            <input name="item_name" value="{{ it.name }}" maxlength="200" class="flex-1 rounded border px-2 py-1">
+            <input name="item_qty" value="{{ it.qty }}" type="number" min="1" max="1000" class="w-20 rounded border px-2 py-1">
+            <input name="item_price" value="{{ it.price }}" inputmode="decimal" class="w-28 rounded border px-2 py-1">
+          </div>
+          {% endfor %}
+          <div class="flex gap-2">
+            <input name="item_name" placeholder="+ produit" maxlength="200" class="flex-1 rounded border px-2 py-1">
+            <input name="item_qty" value="1" type="number" min="1" max="1000" class="w-20 rounded border px-2 py-1">
+            <input name="item_price" value="0" inputmode="decimal" class="w-28 rounded border px-2 py-1">
+          </div>
+        </div>
+        <div class="grid gap-2 md:grid-cols-3">
+          <label class="md:col-span-2">Adresse<input name="address" value="{{ order.address }}" maxlength="300" required class="mt-1 w-full rounded border px-2 py-1"></label>
+          <label>Ville<input name="city" value="{{ order.city }}" maxlength="80" required class="mt-1 w-full rounded border px-2 py-1"></label>
+          <label>Total (DT, vide = calcul auto)<input name="total" value="{{ order.total }}" inputmode="decimal" class="mt-1 w-full rounded border px-2 py-1"></label>
+        </div>
+        <button class="rounded-lg bg-emerald-600 px-3 py-1.5 font-medium text-white">Enregistrer{% if order.status.value == 'MODIFY_REQUESTED' %} et renvoyer au client{% endif %}</button>
+      </form>
+      {% else %}
+        <p>{{ items_summary(order['items'], 500) }}</p>
+        <p class="mt-1 font-semibold">{{ fmt(order.total) }} {{ order.currency }}</p>
+        <p class="text-sm text-slate-500">{{ order.address }}, {{ order.city }}</p>
+      {% endif %}
+      <p class="mt-2 text-xs text-slate-400">Source : {{ order.source.value }}{% if order.external_id %} · réf. {{ order.external_id }}{% endif %} · relances : {{ order.reminders_sent }}</p>
+    </div>
+
+    <div class="rounded-2xl bg-white p-4 shadow-sm">
+      <h2 class="mb-3 font-semibold">Conversation WhatsApp</h2>
+      {% if history %}
+      <div class="space-y-2">
+        {% for msg in history %}
+          {% set out = msg.direction == Direction.OUT %}
+          <div class="flex {{ 'justify-end' if out else 'justify-start' }}">
+            <div class="max-w-[80%] whitespace-pre-line rounded-2xl px-3 py-2 text-sm {{ 'bg-emerald-50' if out else 'bg-slate-100' }}">
+              {{- msg.content -}}
+              <div class="mt-1 text-right text-[10px] text-slate-400">
+                {{ msg.created_at.strftime('%d/%m %H:%M') }} UTC · {{ msg.type.value }}{% if out %} · {{ msg.status.value }}{% endif %}
+                {% if msg.error %}<span class="text-red-600" title="{{ msg.error }}"> · erreur</span>{% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% else %}<p class="text-sm text-slate-500">Aucun message.</p>{% endif %}
+    </div>
+
+    <div class="rounded-2xl bg-white p-4 shadow-sm">
+      <h2 class="mb-2 font-semibold">Historique</h2>
+      <ol class="space-y-1 text-sm">
+        {% for e in order.events %}
+          <li><span class="text-slate-400">{{ e.created_at.strftime('%d/%m %H:%M') }}</span>
+              {{ status_labels[e.from_status][0] if e.from_status else '—' }} → <strong>{{ status_labels[e.to_status][0] }}</strong>
+              <span class="text-slate-500">({{ e.actor.value }}{% if e.note %} · {{ e.note }}{% endif %})</span></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </section>
+</div>
+{% endblock %}

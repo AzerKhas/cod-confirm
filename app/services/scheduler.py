@@ -86,6 +86,15 @@ def send_pending_confirmations(db: Session, shop: Shop, now: datetime) -> int:
     return sent
 
 
+def send_shipped_notices(db: Session, shop: Shop, now: datetime) -> int:
+    """'Order shipped' WhatsApp notices, outside quiet hours."""
+    from app.services.order_admin import pending_shipped_notices, send_shipped_notice
+
+    if is_quiet_hours(shop, now):
+        return 0
+    return sum(send_shipped_notice(db, o) for o in pending_shipped_notices(db, shop))
+
+
 def awaiting_since(db: Session, order: Order) -> datetime | None:
     return db.scalar(
         select(func.max(Event.created_at)).where(
@@ -187,6 +196,7 @@ def tick(now: datetime | None = None) -> None:
             try:
                 send_pending_confirmations(db, shop, now)
                 process_reminders(db, shop, now)
+                send_shipped_notices(db, shop, now)
                 daily_jobs(db, shop, now)
             except Exception:
                 log.exception("scheduler: shop jobs failed", extra={"shop_id": shop_id})

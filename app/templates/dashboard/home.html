@@ -1,0 +1,48 @@
+{% extends "dashboard/layout.html" %}
+{% from "dashboard/_macros.html" import badge, risk, kpi %}
+{% block title %}Tableau de bord – {{ shop.name }}{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap items-center gap-2">
+  <h1 class="mr-auto text-xl font-bold">Tableau de bord</h1>
+  {% for key, label in [('today', "Aujourd'hui"), ('7d', '7 jours'), ('30d', '30 jours')] %}
+    <a href="?period={{ key }}" class="rounded-full px-3 py-1 text-sm {{ 'bg-emerald-600 text-white' if period == key else 'bg-white text-slate-600' }}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<section class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+  {{ kpi('Commandes', stats.total, stats.pending ~ ' en attente') }}
+  {{ kpi('Confirmation', stats.confirmation_rate ~ ' %', stats.confirmed ~ ' confirmées') }}
+  {{ kpi('Annulation', stats.cancellation_rate ~ ' %', stats.cancelled ~ ' annulées') }}
+  {{ kpi('Sans réponse', stats.no_answer_rate ~ ' %', stats.no_answer ~ ' commandes') }}
+  {{ kpi('Refus livraison', stats.refusal_rate ~ ' %', 'parmi les livraisons terminées') }}
+  {{ kpi('Économisé', fmt(stats.money_saved) ~ ' DT', stats.refusals_avoided ~ ' envois évités') }}
+</section>
+
+{% if to_handle %}
+<section class="mt-6 rounded-2xl bg-white p-4 shadow-sm">
+  <h2 class="mb-3 font-semibold">À traiter</h2>
+  <ul class="divide-y">
+    {% for o in to_handle %}
+      <li class="flex items-center gap-3 py-2 text-sm">
+        {{ badge(o.status, status_labels) }}
+        <a class="font-medium hover:underline" href="/dashboard/orders/{{ o.id }}">#{{ o.id }} {{ o.customer.name }}</a>{{ risk(o.customer) }}
+        <span class="ml-auto text-slate-500">{{ fmt(o.total) }} DT · {{ o.city }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="mt-6 rounded-2xl bg-white p-4 shadow-sm">
+  <div class="mb-3 flex items-center">
+    <h2 class="font-semibold">Commandes du jour</h2>
+    <a href="/dashboard/orders" class="ml-auto text-sm text-emerald-700 hover:underline">Toutes les commandes →</a>
+  </div>
+  {% if today_orders %}
+    {% set orders = today_orders %}
+    {% include "dashboard/_orders_rows.html" %}
+  {% else %}
+    <p class="text-sm text-slate-500">Aucune commande aujourd'hui pour le moment.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -21,7 +21,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 | 3 | WhatsApp Cloud API + webhook | ✅ |
 | 4 | Conversation logic (intent, i18n, opt-out, 24h window) | ✅ |
 | 5 | Scheduler (reminders, quiet hours) | ✅ |
-| 6 | Dashboard | ⏳ |
+| 6 | Dashboard | ✅ |
 | 7 | Google Sheets sync | ⏳ |
 | 8 | Multi-tenant & admin | ⏳ |
 | 9 | Security hardening | ⏳ |
@@ -66,6 +66,18 @@ python -m scripts.create_shop --name "Skmei Tunisie" --slug skmei-tn `
 ```
 
 Prints the shop's intake API key **once** (only its hash is stored).
+
+## Dashboard
+
+```powershell
+python -m scripts.create_user --email owner@shop.tn --shop skmei-tn
+```
+
+Then open <http://127.0.0.1:8000/login>. Demo data for a sales demo:
+
+```powershell
+python -m scripts.seed_demo     # shop "Boutique Yasmine", login demo@codconfirm.tn
+```
 
 ## Receiving orders
 
