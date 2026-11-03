@@ -1,5 +1,12 @@
 # Changelog
 
+## Phase 7 – Google Sheets sync (optional per shop)
+- `services/sheets.py`: one row per order in the shop's sheet (tab "Commandes", created with a header if missing), updated in place on every change.
+- Outbox design: every status change / edit flags the order (`sheet_dirty`); the scheduler pushes up to 50 rows per tick with 3 API calls max. Google errors never block WhatsApp and are retried.
+- Values written with `value_input_option=RAW` (no formula injection).
+- One service account for the SaaS (`GOOGLE_SERVICE_ACCOUNT_FILE`); the seller shares the sheet with its email and pastes the sheet id in Settings (changing it re-syncs every order).
+- Migration `0007`. 415 tests.
+
 ## Phase 6 – Dashboard
 - `User` model (owner / staff / superadmin), scrypt password hashing, signed session cookie (HttpOnly, SameSite=Lax, Secure in prod) with `session_version` revocation, session renewed on login, login throttling (5 failures / 15 min), no user enumeration (constant-time dummy hash).
 - CSRF token on every dashboard POST (form field or `X-CSRF-Token` header for HTMX).

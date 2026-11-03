@@ -78,6 +78,7 @@ def edit_order(
     customer receives the confirmation again (with the new details)."""
     if order.status in (S.SHIPPED, S.DELIVERED, S.REFUSED, S.CANCELLED):
         raise ValueError("this order can no longer be edited")
+    order.sheet_dirty = True
     order.address = address
     order.city = city
     order.items = [i.as_json() for i in items]

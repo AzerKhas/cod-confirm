@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     # Shop-owner alerts (modification requests, questions) through a Telegram bot.
     telegram_bot_token: SecretStr = SecretStr("")
 
+    # Google Sheets sync: path to the service-account JSON key (optional).
+    google_service_account_file: str = ""
+
     # Conversation safety: max "I didn't understand" replies per order.
     max_clarifications: int = Field(default=2, ge=0, le=5)
 

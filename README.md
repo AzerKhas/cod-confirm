@@ -22,7 +22,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 | 4 | Conversation logic (intent, i18n, opt-out, 24h window) | ✅ |
 | 5 | Scheduler (reminders, quiet hours) | ✅ |
 | 6 | Dashboard | ✅ |
-| 7 | Google Sheets sync | ⏳ |
+| 7 | Google Sheets sync | ✅ |
 | 8 | Multi-tenant & admin | ⏳ |
 | 9 | Security hardening | ⏳ |
 | 10 | Deployment | ⏳ |
@@ -129,6 +129,13 @@ Runs inside the app (`SCHEDULER_ENABLED=true`) every minute. **Enable it on one 
 - New order → confirmation right away, except during quiet hours (22:00-08:00 shop time) → sent at 08:00.
 - No answer → reminder after 3 h, second after 24 h (`shops.reminder_delays`), then NO_ANSWER 24 h later.
 - Every evening (21:00) → summary to the owner on Telegram + purge of data older than `shops.data_retention_days`.
+
+## Google Sheets (optional)
+
+1. Google Cloud console → create a project → enable the **Google Sheets API** → create a
+   **service account** → download its JSON key → `GOOGLE_SERVICE_ACCOUNT_FILE=/path/key.json`.
+2. The seller shares their Google Sheet with the service-account email (**Editor**) and
+   pastes the sheet id in **Settings**. Orders appear in the tab *Commandes* within a minute.
 
 ## Database migrations
 

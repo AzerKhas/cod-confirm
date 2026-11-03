@@ -28,6 +28,7 @@ from app.services.alerts import notify_owner
 from app.services.notify import send_order_confirmation, send_order_template
 from app.services.orders import transition
 from app.services.privacy import purge_expired
+from app.services.sheets import sync_shop
 from app.services.stats import compute_stats, local_day_bounds
 
 log = logging.getLogger(__name__)
@@ -197,6 +198,7 @@ def tick(now: datetime | None = None) -> None:
                 send_pending_confirmations(db, shop, now)
                 process_reminders(db, shop, now)
                 send_shipped_notices(db, shop, now)
+                sync_shop(db, shop)
                 daily_jobs(db, shop, now)
             except Exception:
                 log.exception("scheduler: shop jobs failed", extra={"shop_id": shop_id})

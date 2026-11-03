@@ -23,6 +23,11 @@
     <input name="data_retention_days" type="number" min="30" max="3650" value="{{ shop.data_retention_days }}" class="mt-1 w-full rounded border px-2 py-1.5"></label>
   <label>Telegram chat id (alertes)
     <input name="owner_telegram_chat_id" value="{{ shop.owner_telegram_chat_id or '' }}" maxlength="40" class="mt-1 w-full rounded border px-2 py-1.5"></label>
+  <label class="md:col-span-2">Google Sheet (optionnel) – id de la feuille
+    <input name="google_sheet_id" value="{{ shop.google_sheet_id or '' }}" maxlength="100" pattern="[A-Za-z0-9_-]*"
+           placeholder="1AbC…  (dans l'URL docs.google.com/spreadsheets/d/<id>/edit)" class="mt-1 w-full rounded border px-2 py-1.5 font-mono">
+    {% if sa_email %}<span class="text-xs text-slate-500">Partagez la feuille (Éditeur) avec <code>{{ sa_email }}</code>.</span>{% endif %}
+  </label>
   <label class="md:col-span-2">Produits du formulaire (un par ligne : <code>Nom = prix</code>)
     <textarea name="products" rows="6" class="mt-1 w-full rounded border px-2 py-1.5 font-mono">{{ products }}</textarea></label>
   <div class="md:col-span-2 text-slate-500">

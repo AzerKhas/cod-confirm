@@ -16,7 +16,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response, StreamingResponse
 from pydantic import ValidationError
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.auth import (
@@ -39,6 +39,7 @@ from app.services.order_admin import ADMIN_ACTIONS, edit_order, resend_confirmat
 from app.services.orders import InvalidTransition, is_risky
 from app.services.privacy import delete_customer
 from app.services.scheduler import is_quiet_hours
+from app.services.sheets import service_account_email
 from app.services.stats import compute_stats, local_day_bounds
 from app.templating import templates
 
@@ -393,7 +394,7 @@ def settings_page(
         request,
         "dashboard/settings.html",
         _ctx(request, user, shop, products=products, languages=list(Language),
-             flash=request.query_params.get("msg")),
+             flash=request.query_params.get("msg"), sa_email=service_account_email()),
     )  # fmt: skip
 
 
@@ -407,6 +408,7 @@ def save_settings(
     data_retention_days: int = Form(ge=30, le=3650),
     owner_telegram_chat_id: str = Form(default="", max_length=40),
     products: str = Form(default="", max_length=10_000),
+    google_sheet_id: str = Form(default="", max_length=100, pattern=r"^[A-Za-z0-9_-]*$"),
     user: User = Depends(require_owner),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
@@ -433,6 +435,10 @@ def save_settings(
         shop.data_retention_days = data_retention_days
         shop.owner_telegram_chat_id = owner_telegram_chat_id.strip() or None
         shop.form_products = catalog[:100]
+        if (google_sheet_id or None) != shop.google_sheet_id:
+            shop.google_sheet_id = google_sheet_id or None
+            # New sheet: push every order again.
+            db.execute(update(Order).where(Order.shop_id == shop.id).values(sheet_dirty=True))
         db.commit()
     except (ValueError, InvalidOperation):
         db.rollback()

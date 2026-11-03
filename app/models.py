@@ -22,6 +22,7 @@ from sqlalchemy import (
     Text,
     TypeDecorator,
     UniqueConstraint,
+    true,
 )
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -97,6 +98,9 @@ class Shop(Base):
     data_retention_days: Mapped[int] = mapped_column(Integer, default=365)
     # Local date of the last daily summary / maintenance (avoids sending it twice).
     last_daily_run_on: Mapped[date | None] = mapped_column(Date)
+
+    # Google Sheets sync (optional): id of the sheet shared with the service account.
+    google_sheet_id: Mapped[str | None] = mapped_column(String(100))
 
     # Telegram chat id of the owner, for alerts (modification requests, questions).
     owner_telegram_chat_id: Mapped[str | None] = mapped_column(String(40))
@@ -177,6 +181,8 @@ class Order(Base):
     )
     source: Mapped[OrderSource] = mapped_column(_enum(OrderSource))
     reminders_sent: Mapped[int] = mapped_column(Integer, default=0)
+    # True when the Google Sheet row must be (re)written.
+    sheet_dirty: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     # When the "order shipped" WhatsApp notice went out (None = still to send).
     shipped_notified_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     last_contacted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
