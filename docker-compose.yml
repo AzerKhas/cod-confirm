@@ -1,0 +1,30 @@
+# Local / staging stack: app + PostgreSQL.
+# The production stack (reverse proxy + HTTPS) comes in Phase 10.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cod
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cod-dev-only}
+      POSTGRES_DB: cod_confirm
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cod -d cod_confirm"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://cod:${POSTGRES_PASSWORD:-cod-dev-only}@db:5432/cod_confirm
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
