@@ -17,6 +17,7 @@ from app.auth import LoginRequired
 from app.config import get_settings
 from app.logging_config import configure_logging
 from app.middleware import BodySizeLimitMiddleware, SecurityHeadersMiddleware
+from app.monitoring import setup_monitoring
 from app.routers import admin, dashboard, health, intake, order_form, webhook_meta
 
 log = logging.getLogger("cod_confirm")
@@ -47,6 +48,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings.log_level)
+    setup_monitoring(settings)
 
     app = FastAPI(
         title="COD Confirm",
@@ -74,6 +76,8 @@ def create_app() -> FastAPI:
     )
 
     hosts = [h.strip() for h in settings.allowed_hosts.split(",") if h.strip()] or ["*"]
+    if "*" not in hosts:
+        hosts += ["127.0.0.1", "localhost"]  # container health checks
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts)
     app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_body_bytes)
     app.add_middleware(SecurityHeadersMiddleware, hsts=settings.app_env == "prod")

@@ -1,5 +1,13 @@
 # Changelog
 
+## Phase 10 – Deployment
+- `docker-compose.prod.yml`: Caddy (automatic HTTPS, Let's Encrypt, body limit, JSON logs) → app (read-only filesystem, no capabilities, no-new-privileges, single process with the scheduler) → PostgreSQL 16 on an internal network (no published port) + nightly encrypted backups; rotated logs.
+- `deploy/Caddyfile` (validated with `caddy validate`), `render.yaml` blueprint, `DEPLOY.md` (VPS step by step, Render, Railway, updates, monitoring, backups off-site, demo).
+- Monitoring: ERROR logs pushed to the operator's Telegram (throttled, background thread), optional Sentry without personal data, `/health` for uptime monitors.
+- `DATABASE_URL` from Render / Railway (`postgres://`) normalized to psycopg 3; health checks allowed on localhost with `ALLOWED_HOSTS`.
+- Verified end to end with Docker: image build from `requirements.lock`, all migrations on PostgreSQL 16, health check, intake → confirmation → scheduler on Postgres, demo seed refused in prod.
+- `scripts/seed_demo.py`: demo clothing shop with realistic fake orders and conversations for sales demos. 461 tests.
+
 ## Phase 9 – Security hardening
 - Webhook secrets (Shopify / WooCommerce) encrypted at rest like WhatsApp tokens; legacy plain values still work; key rotation with `ENCRYPTION_KEY=new,old` + `scripts/rotate_secrets.py`.
 - Public order form: signed expiring token (2 h) against scripted submissions (on top of honeypot + per-IP rate limit).

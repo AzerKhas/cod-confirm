@@ -9,7 +9,7 @@ import base64
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Language = Literal["darija", "ar", "fr"]
@@ -51,6 +51,9 @@ class Settings(BaseSettings):
 
     # Shop-owner alerts (modification requests, questions) through a Telegram bot.
     telegram_bot_token: SecretStr = SecretStr("")
+    # Monitoring: errors pushed to the operator's Telegram chat, optional Sentry.
+    operator_telegram_chat_id: str = ""
+    sentry_dsn: SecretStr = SecretStr("")
 
     # Google Sheets sync: path to the service-account JSON key (optional).
     google_service_account_file: str = ""
@@ -79,6 +82,15 @@ class Settings(BaseSettings):
     @property
     def is_sqlite(self) -> bool:
         return self.database_url.startswith("sqlite")
+
+    @field_validator("database_url")
+    @classmethod
+    def _normalize_db_url(cls, v: str) -> str:
+        """Render / Railway / Heroku give 'postgres://...': use the psycopg 3 driver."""
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg://" + v[len(prefix) :]
+        return v
 
     @model_validator(mode="after")
     def _check_prod_secrets(self) -> Settings:

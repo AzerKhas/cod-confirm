@@ -25,7 +25,7 @@ Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — defa
 | 7 | Google Sheets sync | ✅ |
 | 8 | Multi-tenant & admin | ✅ |
 | 9 | Security hardening | ✅ |
-| 10 | Deployment | ⏳ |
+| 10 | Deployment | ✅ |
 
 ## Run locally (Windows / PowerShell)
 
@@ -49,7 +49,11 @@ pytest
 ruff check .
 ```
 
-## Docker (app + PostgreSQL)
+## Production
+
+See [DEPLOY.md](DEPLOY.md) (VPS with Caddy HTTPS + PostgreSQL + backups, Render, Railway).
+
+## Docker (app + PostgreSQL, local)
 
 ```powershell
 copy .env.example .env
