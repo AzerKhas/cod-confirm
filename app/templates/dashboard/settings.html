@@ -15,7 +15,7 @@
         <input class="input" id="name" name="name" value="{{ shop.name }}" maxlength="120" required></div>
       <div class="field"><label for="lang">Langue des messages</label>
         <select class="select" id="lang" name="default_language">
-          {% for l in languages %}<option value="{{ l.value }}" {% if shop.default_language == l %}selected{% endif %}>{{ {'darija': 'Darija (latin)', 'ar': 'Arabe', 'fr': 'Français'}[l.value] }}</option>{% endfor %}
+          {% for l in languages %}<option value="{{ l.value }}" {% if shop.default_language == l %}selected{% endif %}>{{ {'darija': 'Darija (latin)', 'ar': 'Arabe', 'fr': 'Français', 'en': 'Anglais'}[l.value] }}</option>{% endfor %}
         </select>
         <span class="hint">Un client qui écrit en arabe reçoit automatiquement les réponses en arabe.</span></div>
       <div class="field"><label for="fee">Frais de livraison (DT)</label>

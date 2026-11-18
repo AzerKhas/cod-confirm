@@ -14,7 +14,7 @@ from app.services.notify import template_language_code
 
 OUT = Path(__file__).resolve().parent.parent / "docs" / "whatsapp-templates.md"
 LANG_LABEL = {Language.DARIJA: "Tunisian Darija (Latin)", Language.ARABIC: "Arabic",
-              Language.FRENCH: "French"}  # fmt: skip
+              Language.FRENCH: "French", Language.ENGLISH: "English"}  # fmt: skip
 
 
 def render() -> str:

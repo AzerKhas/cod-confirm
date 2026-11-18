@@ -30,7 +30,7 @@ No WhatsApp Web automation, no unofficial libraries.
    with the permissions `whatsapp_business_messaging` and `whatsapp_business_management`.
    The token is stored **encrypted** (`shops.access_token_encrypted`, Fernet with
    `ENCRYPTION_KEY`), never in plain text. The admin page (Phase 8) does this for you.
-4. Submit the 9 templates of [whatsapp-templates.md](whatsapp-templates.md) in the shop's
+4. Submit the 12 templates (3 messages × Darija, Arabic, French, English) of [whatsapp-templates.md](whatsapp-templates.md) in the shop's
    WhatsApp Business Account (or in a shared WABA). Approval usually takes minutes to hours.
 5. Set `DRY_RUN=false` once templates are approved.
 

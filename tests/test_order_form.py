@@ -35,13 +35,39 @@ def count_orders(db: Session) -> int:
     return db.scalar(select(func.count()).select_from(Order)) or 0
 
 
-def test_form_renders_in_darija(client: TestClient, shop: Any) -> None:
-    r = client.get("/form/skmei-tn")
+def test_form_opens_in_french_with_language_switcher(client: TestClient, shop: Any) -> None:
+    r = client.get("/form/skmei-tn")  # the shop's default language is Darija: the form stays French
     assert r.status_code == 200
     assert "Skmei Tunisie" in r.text
-    assert "Commandi taw" in r.text
+    assert "Commander maintenant" in r.text
     assert "Skmei 1335 – 69.000 DT" in r.text
     assert "Sidi Bouzid" in r.text  # governorates list
+    for lang, label in (
+        ("fr", "Français"),
+        ("ar", "العربية"),
+        ("en", "English"),
+        ("darija", "Tounsi"),
+    ):
+        assert f'href="?lang={lang}"' in r.text and label in r.text
+
+
+@pytest.mark.parametrize(("lang", "title"), [("en", "Order now"), ("darija", "Commandi taw"),
+                                             ("fr", "Commander maintenant")])  # fmt: skip
+def test_form_languages(client: TestClient, shop: Any, lang: str, title: str) -> None:
+    r = client.get(f"/form/skmei-tn?lang={lang}")
+    assert title in r.text and 'dir="ltr"' in r.text
+
+
+def test_english_order_gets_english_whatsapp(
+    client: TestClient, db_session: Session, shop: Any
+) -> None:
+    r = client.post("/form/skmei-tn", data=form(lang="en"), follow_redirects=False)
+    assert r.headers["location"] == "/form/skmei-tn/done?lang=en"
+    assert "Thank you!" in client.get(r.headers["location"]).text
+    order = db_session.scalars(select(Order)).one()
+    db_session.expire_all()
+    assert order.customer.language is Language.ENGLISH
+    assert order.messages[0].content.startswith("Hello Mariem")  # confirmation template in English
 
 
 def test_form_arabic_is_rtl(client: TestClient, shop: Any) -> None:
@@ -51,7 +77,7 @@ def test_form_arabic_is_rtl(client: TestClient, shop: Any) -> None:
 
 
 def test_form_unknown_lang_falls_back(client: TestClient, shop: Any) -> None:
-    assert "Commandi taw" in client.get("/form/skmei-tn?lang=xx").text
+    assert "Commander maintenant" in client.get("/form/skmei-tn?lang=xx").text
 
 
 def test_form_unknown_shop_404(client: TestClient) -> None:
@@ -62,17 +88,17 @@ def test_submit_creates_order_and_redirects(client: TestClient, db_session: Sess
                                             shop: Any) -> None:  # fmt: skip
     r = client.post("/form/skmei-tn", data=form(), follow_redirects=False)
     assert r.status_code == 303
-    assert r.headers["location"] == "/form/skmei-tn/done?lang=darija"
+    assert r.headers["location"] == "/form/skmei-tn/done?lang=fr"
 
     order = db_session.scalars(select(Order)).one()
     assert order.source is OrderSource.FORM
     assert order.customer.phone_e164 == "+21655444333"
-    assert order.customer.language is Language.DARIJA
+    assert order.customer.language is Language.FRENCH
     assert order.items == [{"name": "Skmei 1335", "qty": 2, "price": "69.000"}]
     assert order.total == Decimal("138.000")
 
     done = client.get(r.headers["location"])
-    assert "Ya3tik essa7a" in done.text
+    assert "Merci" in done.text
 
 
 def test_price_cannot_be_forged(client: TestClient, db_session: Session, shop: Any) -> None:
@@ -83,13 +109,15 @@ def test_price_cannot_be_forged(client: TestClient, db_session: Session, shop: A
 @pytest.mark.parametrize(
     ("over", "field_msg"),
     [
-        ({"phone": "71 000 000"}, "Noumrou mouch s7i7"),
-        ({"phone": ""}, "Lazem t3abbi hedhi"),
-        ({"name": "  "}, "Lazem t3abbi hedhi"),
-        ({"city": "Paris"}, "Lazem t3abbi hedhi"),
-        ({"product": "9"}, "A5tar produit"),
-        ({"qty": "0"}, "Fama ghalta"),
-        ({"qty": "abc"}, "Fama ghalta"),
+        ({"phone": "71 000 000"}, "Numéro invalide"),
+        ({"phone": ""}, "Champ obligatoire"),
+        ({"name": "  "}, "Champ obligatoire"),
+        ({"city": "Paris"}, "Champ obligatoire"),
+        ({"product": "9"}, "Choisissez un produit"),
+        ({"qty": "0"}, "Une erreur est survenue"),
+        ({"qty": "abc"}, "Une erreur est survenue"),
+        ({"phone": "123", "lang": "darija"}, "Noumrou mouch s7i7"),
+        ({"phone": "123", "lang": "en"}, "Invalid number"),
     ],
 )
 def test_invalid_submission_shows_error(client: TestClient, db_session: Session, shop: Any,

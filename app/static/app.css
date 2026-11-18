@@ -414,6 +414,11 @@ details.table-view table { margin-top: 8px; }
 .public { min-height: 100vh; background: linear-gradient(180deg, var(--brand-soft) 0, var(--bg) 280px); padding: 28px 16px 40px; }
 .public-card { max-width: 480px; margin: 0 auto; }
 .shop-head { text-align: center; margin-bottom: 18px; }
+.lang-switch { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; margin: 0 auto 18px; padding: 4px;
+  width: max-content; max-width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; }
+.lang-switch a { padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-2); }
+.lang-switch a:hover { color: var(--text); }
+.lang-switch a.on { background: var(--brand); color: #fff; }
 .shop-logo { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; margin: 0 auto 12px;
   background: linear-gradient(135deg, #12b981, #0b7d57); color: #fff; font-size: 26px; font-weight: 800; box-shadow: var(--shadow); }
 .shop-head h1 { font-size: 22px; } .shop-head p { color: var(--text-2); margin-top: 4px; }
@@ -422,7 +427,7 @@ details.table-view table { margin-top: 8px; }
   border: 1px solid var(--border); font-size: 12.5px; font-weight: 600; color: var(--text-2); }
 .trust svg.icon { color: var(--brand); width: 15px; height: 15px; }
 .public form.card { padding: 20px; display: grid; gap: 16px; }
-.qty-row { display: grid; grid-template-columns: 1fr 96px; gap: 12px; }
+.qty-row { display: grid; grid-template-columns: 1fr 76px; gap: 10px; }
 /* Hidden without any offset: a negative left would widen RTL (Arabic) pages. */
 .honeypot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; opacity: 0; pointer-events: none; }
 .public { overflow-x: hidden; }

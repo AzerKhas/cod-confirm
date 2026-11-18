@@ -6,7 +6,9 @@ Each new order → the customer gets a WhatsApp message (official **Meta WhatsAp
 ✅ Confirmer / ✏️ Modifier / ❌ Annuler → reminders → delivery tracking → dashboard with confirmation,
 cancellation, no-answer and refusal rates.
 
-Customer languages: **Tunisian Darija (Latin letters)**, Arabic, French — default chosen per shop.
+Customer languages: **French, Arabic, English and Tunisian Darija (Latin letters)**. The public order
+form opens in French with a one-tap language switcher; the bot then writes in the language the
+customer ordered in, and switches automatically to the language the customer replies in.
 
 > Tone of the Darija messages: natural, everyday Tunisian as people really write it on WhatsApp
 > (e.g. "Salam Ahmed 👋 commande mte3ek wslet, tconfirmi?"), short, polite, no stiff/translated phrasing.
@@ -130,6 +132,16 @@ Shopify paid orders and WooCommerce non-COD orders are ignored. Re-sent webhooks
 - `DRY_RUN=true` logs messages instead of sending them.
 
 ## Conversation
+
+**Which language does the bot speak?** The customer's own language:
+
+1. First message (WhatsApp template): the language chosen on the order form (French by default),
+   or the shop's default language for Shopify / WooCommerce / API orders.
+2. Every reply of the customer is analysed: Arabic letters → Arabic (MSA, understood by everyone,
+   also used when the customer writes Tunisian in Arabic letters); Latin letters with Tunisian words
+   or digits (`n7eb`, `3andi`, `ey`, `behi`) → Tunisian Darija; French words → French; English
+   words → English. The bot switches and keeps that language for the next messages and reminders.
+3. Short neutral replies (`ok`, `1`, 👍) never change the language.
 
 | Customer writes | Bot does |
 |---|---|

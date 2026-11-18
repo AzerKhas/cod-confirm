@@ -93,7 +93,41 @@ FORM_TEXTS: dict[Language, dict[str, str]] = {
         "total": "Total",
         "secure": "Vos informations ne sont jamais partagées",
     },
+    Language.ENGLISH: {
+        "title": "Order now",
+        "subtitle": "Cash on delivery 🚚",
+        "name": "Full name",
+        "phone": "Phone number (WhatsApp)",
+        "phone_hint": "8 digits, e.g. 98 123 456",
+        "city": "Governorate",
+        "city_placeholder": "Choose your governorate",
+        "address": "Full address",
+        "address_hint": "Street, number, near…",
+        "product": "Product",
+        "qty": "Quantity",
+        "submit": "Place my order",
+        "done_title": "Thank you! ✅",
+        "done_body": "Your order has been received. We are sending you a WhatsApp message "
+        "to confirm it.",
+        "err_required": "This field is required",
+        "err_phone": "Invalid number. Enter 8 digits, e.g. 98 123 456",
+        "err_product": "Choose a product",
+        "err_generic": "Something went wrong, please check your details",
+        "trust_cod": "Cash on delivery",
+        "trust_whatsapp": "WhatsApp confirmation",
+        "trust_delivery": "Delivery all over Tunisia",
+        "total": "Total",
+        "secure": "Your details are never shared",
+    },
 }
+
+# Languages offered on the public order form, in display order (label in its own language).
+FORM_LANGUAGES: tuple[tuple[Language, str], ...] = (
+    (Language.FRENCH, "Français"),
+    (Language.ARABIC, "العربية"),
+    (Language.ENGLISH, "English"),
+    (Language.DARIJA, "Tounsi"),
+)
 
 # The 24 governorates of Tunisia.
 TN_GOVERNORATES: tuple[str, ...] = (
@@ -142,18 +176,21 @@ TEMPLATE_SUFFIX: dict[Language, str] = {
     Language.DARIJA: "tn",
     Language.ARABIC: "ar",
     Language.FRENCH: "fr",
+    Language.ENGLISH: "en",
 }
 
 _STOP_FOOTER = {
     Language.DARIJA: "Ekteb STOP ken ma t7ebch twasslek messaget",
     Language.ARABIC: "أرسل STOP أو توقف لإيقاف الرسائل",
     Language.FRENCH: "Répondez STOP pour ne plus recevoir de messages",
+    Language.ENGLISH: "Reply STOP to stop receiving messages",
 }
 
 CONFIRM_BUTTONS: dict[Language, tuple[str, ...]] = {
     Language.DARIJA: ("✅ Nconfirmi", "✏️ Nbaddel haja", "❌ Nannuli"),
     Language.ARABIC: ("✅ تأكيد", "✏️ تعديل", "❌ إلغاء"),
     Language.FRENCH: ("✅ Confirmer", "✏️ Modifier", "❌ Annuler"),
+    Language.ENGLISH: ("✅ Confirm", "✏️ Change", "❌ Cancel"),
 }
 
 # Button order = payload order: index 0 confirm, 1 modify, 2 cancel.
@@ -189,6 +226,14 @@ ORDER_CONFIRMATION = WaTemplate(
             "📍 Livraison à {{5}}\n\n"
             "Confirmez-vous la commande ?"
         ),
+        Language.ENGLISH: (
+            "Hello {{1}} 👋\n"
+            "Thank you for your order at {{2}}!\n\n"
+            "🛍️ {{3}}\n"
+            "💰 {{4}} TND, cash on delivery\n"
+            "📍 Delivery to {{5}}\n\n"
+            "Do you confirm your order?"
+        ),
     },
     footers=_STOP_FOOTER,
     buttons=CONFIRM_BUTTONS,
@@ -215,6 +260,11 @@ ORDER_REMINDER = WaTemplate(
             "Nous attendons toujours votre réponse pour votre commande chez {{2}} ({{3}} DT).\n"
             "Confirmez-vous l'envoi ?"
         ),
+        Language.ENGLISH: (
+            "Hello {{1}} 🙏\n"
+            "We are still waiting for your answer about your order at {{2}} ({{3}} TND).\n"
+            "Shall we ship it?"
+        ),
     },
     footers=_STOP_FOOTER,
     buttons=CONFIRM_BUTTONS,
@@ -240,6 +290,11 @@ ORDER_SHIPPED = WaTemplate(
             "Bonjour {{1}}, votre commande chez {{2}} est en route avec le livreur 🚚\n"
             "Il vous appellera bientôt. Prévoyez {{3}} DT à la livraison.\n"
             "Merci !"
+        ),
+        Language.ENGLISH: (
+            "Hello {{1}}, your order from {{2}} is on its way with the courier 🚚\n"
+            "They will call you soon. Please have {{3}} TND ready on delivery.\n"
+            "Thank you!"
         ),
     },
     footers=_STOP_FOOTER,
@@ -333,6 +388,23 @@ REPLIES: dict[Language, dict[str, str]] = {
         "no_order": "Bonjour 👋 Aucune commande en cours avec ce numéro. "
         "Pour toute question, écrivez à {shop}.",
     },
+    Language.ENGLISH: {
+        "confirmed": "Thank you {name} ✅ Your order is confirmed. We will ship it very soon 🚚",
+        "already_confirmed": "Your order is already confirmed 👍 Any question? Just write to us.",
+        "cancelled": "Noted {name}, your order is cancelled ❌ You can order again anytime 🙏",
+        "already_cancelled": "This order is already cancelled. You can place a new one anytime 🙏",
+        "modify_ask": "Sure ✏️ Tell us what you would like to change (address, size, colour, "
+        "quantity…) and {shop} will get back to you.",
+        "modify_ack": "Got it 👍 {shop} will get back to you.",
+        "shipped_locked": "Your order is already with the courier 🚚 To change or cancel it, "
+        "please contact {shop} directly.",
+        "question_ack": "Your question has been sent to {shop} 👍 You will get an answer soon.",
+        "clarify": "Sorry {name}, I didn't understand 🙏 Do you confirm your order?",
+        "stopped": "Noted, you won't receive any more messages 👍 To come back, send START.",
+        "resubscribed": "Welcome back! You will receive our messages again 👍",
+        "no_order": "Hello 👋 We couldn't find an open order for this number. "
+        "For any question, please write to {shop}.",
+    },
 }
 
 # Interactive reply buttons (max 20 characters each).
@@ -340,6 +412,7 @@ REPLY_BUTTONS: dict[Language, tuple[str, str, str]] = {
     Language.DARIJA: ("✅ Nconfirmi", "✏️ Nbaddel haja", "❌ Nannuli"),
     Language.ARABIC: ("✅ تأكيد", "✏️ تعديل", "❌ إلغاء"),
     Language.FRENCH: ("✅ Confirmer", "✏️ Modifier", "❌ Annuler"),
+    Language.ENGLISH: ("✅ Confirm", "✏️ Change", "❌ Cancel"),
 }
 
 

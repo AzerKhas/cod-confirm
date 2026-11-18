@@ -34,6 +34,7 @@ class Language(StrEnum):
     DARIJA = "darija"
     ARABIC = "ar"
     FRENCH = "fr"
+    ENGLISH = "en"
 
 
 class Direction(StrEnum):

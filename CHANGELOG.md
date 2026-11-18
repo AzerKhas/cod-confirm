@@ -1,5 +1,12 @@
 # Changelog
 
+## English + multilingual form
+- New language **English**: order form, WhatsApp templates (`cod_*_en`, 12 templates in total), bot replies, buttons, settings.
+- Public order form opens in **French** with a switcher Français / العربية / English / Tounsi; the language chosen is stored on the customer and used for all WhatsApp messages.
+- `services/language.py`: detects the language of each customer reply (Arabic script, Tunisian Darija in Latin letters, French, English) and the bot answers in it; neutral replies keep the current language; button replies never switch it.
+- English intents: yes / sure / no / cancel / "I don't want" / "no thanks" / change / wrong address / size / colour, negations ("I don't confirm"), questions (what / why...).
+- 545 tests.
+
 ## Subscription payments (Konnect / Flouci)
 - `services/payments.py`: Konnect API v2 (`init-payment`, `GET /payments/{ref}`, webhook `?payment_ref=`) and Flouci API v2 (`generate_payment`, `verify_payment`) clients, sandbox/production, plus a demo checkout for dev and sales demos (disabled in prod).
 - `services/billing.py`: server-side prices (1 / 3 / 12 months, 12 = 10 paid), checkout, re-verification with the provider before applying, idempotent activation (plan, `paid_until` extended from the current end, re-activation, receipt number), amount-mismatch protection, manual payments (transfer / cash).

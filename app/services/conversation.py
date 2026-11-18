@@ -28,6 +28,7 @@ from app.services import messages as m
 from app.services import usage
 from app.services.alerts import notify_owner
 from app.services.intent import Intent, IntentClassifier, build_classifier, detect
+from app.services.language import detect_language
 from app.services.notify import customer_language
 from app.services.orders import can_transition, transition
 from app.services.whatsapp import ReplyButton, WhatsAppClient, WhatsAppError, client_for_shop
@@ -37,17 +38,10 @@ log = logging.getLogger(__name__)
 SERVICE_WINDOW = timedelta(hours=24)
 S = OrderStatus
 
-_ARABIC_CHARS = range(0x0600, 0x0700)
-
 
 def in_service_window(customer: Customer, now: datetime | None = None) -> bool:
     now = now or datetime.now(UTC)
     return customer.last_inbound_at is not None and now - customer.last_inbound_at < SERVICE_WINDOW
-
-
-def _looks_arabic(text: str) -> bool:
-    letters = [c for c in text if c.isalpha()]
-    return bool(letters) and sum(ord(c) in _ARABIC_CHARS for c in letters) / len(letters) > 0.5
 
 
 class Conversation:
@@ -175,8 +169,12 @@ class Conversation:
     def handle(self) -> Intent:
         msg, customer = self.msg, self.customer
 
-        if customer.language is None and _looks_arabic(msg.content):
-            customer.language = Language.ARABIC
+        # Answer in the language the customer writes in (button replies keep the current one).
+        if not msg.payload:
+            detected = detect_language(msg.content)
+            if detected is not None and detected is not customer.language:
+                log.info("conversation: language switched", extra={"language": detected.value})
+                customer.language = detected
 
         try:
             if msg.wa_message_id:

@@ -6,6 +6,12 @@
 {% block body %}
 <main class="public">
   <div class="public-card">
+    <nav class="lang-switch" aria-label="Langue / اللغة / Language">
+      {% for l, label in form_languages %}
+        <a href="?lang={{ l.value }}" lang="{{ l.value if l.value != 'darija' else 'fr-TN' }}" class="{{ 'on' if lang == l.value }}"
+           {% if lang == l.value %}aria-current="true"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </nav>
     <header class="shop-head">
       <div class="shop-logo" aria-hidden="true">{{ shop.name[:1]|upper }}</div>
       <h1>{{ shop.name }}</h1>

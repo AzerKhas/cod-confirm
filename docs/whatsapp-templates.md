@@ -102,6 +102,33 @@ Confirmez-vous la commande ?
 2. ✏️ Modifier
 3. ❌ Annuler
 
+### English
+
+- **Name:** `cod_order_confirmation_en`
+- **Language:** `en`
+- **Category:** UTILITY
+
+**Body**
+
+```
+Hello {{1}} 👋
+Thank you for your order at {{2}}!
+
+🛍️ {{3}}
+💰 {{4}} TND, cash on delivery
+📍 Delivery to {{5}}
+
+Do you confirm your order?
+```
+
+**Footer:** Reply STOP to stop receiving messages
+
+**Buttons (Quick reply, in this order):**
+
+1. ✅ Confirm
+2. ✏️ Change
+3. ❌ Cancel
+
 ## `order_reminder`
 
 | # | Variable | Sample |
@@ -176,6 +203,28 @@ Confirmez-vous l'envoi ?
 2. ✏️ Modifier
 3. ❌ Annuler
 
+### English
+
+- **Name:** `cod_order_reminder_en`
+- **Language:** `en`
+- **Category:** UTILITY
+
+**Body**
+
+```
+Hello {{1}} 🙏
+We are still waiting for your answer about your order at {{2}} ({{3}} TND).
+Shall we ship it?
+```
+
+**Footer:** Reply STOP to stop receiving messages
+
+**Buttons (Quick reply, in this order):**
+
+1. ✅ Confirm
+2. ✏️ Change
+3. ❌ Cancel
+
 ## `order_shipped`
 
 | # | Variable | Sample |
@@ -231,3 +280,19 @@ Merci !
 ```
 
 **Footer:** Répondez STOP pour ne plus recevoir de messages
+
+### English
+
+- **Name:** `cod_order_shipped_en`
+- **Language:** `en`
+- **Category:** UTILITY
+
+**Body**
+
+```
+Hello {{1}}, your order from {{2}} is on its way with the courier 🚚
+They will call you soon. Please have {{3}} TND ready on delivery.
+Thank you!
+```
+
+**Footer:** Reply STOP to stop receiving messages

@@ -69,6 +69,8 @@ CONFIRM_WORDS = _set(
     # French / English
     "oui", "ouais", "yes", "yep", "confirme", "confirmer", "confirmee", "confirm", "accord",
     "valide", "valider", "parfait", "daccord",
+    # English
+    "yeah", "yup", "sure", "confirmed", "absolutely", "agreed",
     # Arabic
     "نعم", "اي", "ايه", "ايوه", "اكيد", "موافق", "اكد", "تاكيد", "نؤكد", "باهي", "مريقل", "صحيح",
 )  # fmt: skip
@@ -77,7 +79,7 @@ CANCEL_WORDS = _set(
     "la", "le", "nannuli", "annuli", "nanuliha", "ma3adch", "manhebch", "man7ebch", "manhbch",
     "mahajtich", "ma7ajtich", "rja3t", "nraja3",
     # French / English
-    "non", "no", "nope", "annuler", "annule", "annulee", "annulez", "cancel",
+    "non", "no", "nope", "annuler", "annule", "annulee", "annulez", "cancel", "cancelled",
     # Arabic
     "لا", "الغاء", "الغي", "نلغي", "الغيها", "نلغيها",
 )  # fmt: skip
@@ -88,6 +90,7 @@ MODIFY_WORDS = _set(
     # French / English
     "modifier", "modifie", "modif", "modification", "changer", "change", "changement",
     "taille", "pointure", "couleur", "quantite", "adresse", "modify",
+    "edit", "update", "address", "size", "color", "colour", "quantity",
     # Arabic
     "تعديل", "عدل", "نعدل", "بدل", "نبدل", "تبديل", "غير", "نغير", "تغيير", "العنوان", "المقاس",
     "اللون", "القياس",
@@ -95,7 +98,8 @@ MODIFY_WORDS = _set(
 # Short words that also appear inside normal sentences ("la commande", "ok merci, mais..."):
 # they only count when the message is very short or starts with them.
 WEAK_WORDS = _set("la", "le", "no", "non", "ey", "eyh", "ok", "oki", "اي", "لا", "nheb", "n7eb")
-NEGATIONS = _set("ma", "mch", "mich", "mouch", "moch", "mech", "pas", "ne", "ما", "مش", "موش")
+NEGATIONS = _set("ma", "mch", "mich", "mouch", "moch", "mech", "pas", "ne", "ما", "مش", "موش",
+                 "not", "dont", "t", "never")  # "don't" is tokenized as "don", "t"  # fmt: skip
 
 STOP_PHRASES = _phrases(
     "stop", "stp stop", "arret", "arrete", "arreter", "desabonner", "desinscrire",
@@ -107,14 +111,17 @@ CANCEL_PHRASES = _phrases(
     "ma n7ebch", "ma nhebch", "mch n7eb", "mouch n7eb", "ma nconfirmich", "mch nconfirmi",
     "ma 7ajtich", "bdalt ra2yi", "badalt ra2yi", "je ne veux plus", "pas besoin",
     "ne confirme pas", "ما نحبش", "ما نحبهاش", "ما عادش", "غير موافق", "مانيش موافق",
+    "don't want", "do not want", "dont want", "not interested", "no thanks", "no thank you",
+    "changed my mind", "don't need", "do not need",
 )  # fmt: skip
 MODIFY_PHRASES = _phrases(
     "n7eb nbaddel", "nheb nbadel", "je veux changer", "je veux modifier", "نحب نبدل", "نحب نعدل",
+    "i want to change", "can i change", "wrong address", "change my", "change the",
 )  # fmt: skip
 START_WORDS = _set("start", "demarrer", "ابدا")
 QUESTION_WORDS = _set(
     "9adech", "9adeh", "waktech", "wa9tech", "win", "chnowa", "chnia", "kifech", "3lech",
-    "quand", "combien", "comment", "pourquoi", "ou", "quoi", "when", "how", "where",
+    "quand", "combien", "comment", "pourquoi", "ou", "quoi", "when", "how", "where", "what", "why",
     "كم", "متى", "وقتاش", "قداش", "وين", "علاش", "كيفاش", "شنوه", "اين", "لماذا",
 )  # fmt: skip
 

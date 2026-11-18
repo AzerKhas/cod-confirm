@@ -17,7 +17,7 @@
         {% for p, l in plans.items() %}<option value="{{ p.value }}">{{ l.label }} – {{ l.monthly_orders }} cmd/mois – {{ l.price_tnd }} DT</option>{% endfor %}
       </select></div>
       <div class="field"><label for="lang">Langue des messages</label><select class="select" id="lang" name="default_language">
-        {% for l in languages %}<option value="{{ l.value }}">{{ {'darija': 'Darija (latin)', 'ar': 'Arabe', 'fr': 'Français'}[l.value] }}</option>{% endfor %}
+        {% for l in languages %}<option value="{{ l.value }}">{{ {'darija': 'Darija (latin)', 'ar': 'Arabe', 'fr': 'Français', 'en': 'Anglais'}[l.value] }}</option>{% endfor %}
       </select></div>
     </div>
   </div>

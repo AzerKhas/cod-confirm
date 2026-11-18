@@ -34,6 +34,7 @@ def template_language_code(language: Language, settings: Settings | None = None)
         Language.DARIJA: settings.whatsapp_darija_template_language,
         Language.ARABIC: "ar",
         Language.FRENCH: "fr",
+        Language.ENGLISH: "en",
     }[language]
 
 

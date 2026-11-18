@@ -41,7 +41,7 @@
           <dt>Commandes</dt><dd>{{ customer.total_orders }}</dd>
           <dt>Refus</dt><dd>{{ customer.total_refused }}</dd>
           <dt>Score de risque</dt><dd>{{ customer.risk_score }}/100 {{ risk(customer) }}</dd>
-          <dt>Langue</dt><dd>{{ {'darija': 'Darija', 'ar': 'Arabe', 'fr': 'Français'}.get(customer.language.value if customer.language else '', 'Par défaut') }}</dd>
+          <dt>Langue</dt><dd>{{ {'darija': 'Darija', 'ar': 'Arabe', 'fr': 'Français', 'en': 'Anglais'}.get(customer.language.value if customer.language else '', 'Par défaut') }}</dd>
         </dl>
         {% if risky %}<div class="alert alert-danger mt-16">{{ icon('alert') }}<span>Ce client a déjà refusé des colis. Appelez-le avant d'expédier.</span></div>{% endif %}
         {% if customer.opted_out %}<div class="alert alert-warn mt-16">{{ icon('x-circle') }}<span>A demandé STOP : ne reçoit plus de messages.</span></div>{% endif %}

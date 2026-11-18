@@ -23,7 +23,7 @@ from app.ratelimit import client_ip, limiter
 from app.schemas import OrderIn
 from app.security import check_form_token, make_form_token
 from app.services.intake import create_order
-from app.services.messages import TN_GOVERNORATES, form_texts
+from app.services.messages import FORM_LANGUAGES, TN_GOVERNORATES, form_texts
 from app.services.notify import send_order_confirmation_job
 from app.templating import templates
 
@@ -43,11 +43,17 @@ def _get_shop(db: Session, slug: str) -> Shop:
     return shop
 
 
+# The public form opens in French (the most shared written language for online shopping in
+# Tunisia); customers switch to Arabic, English or Tunisian with one tap. The language they
+# order in is the language of their WhatsApp messages afterwards.
+FORM_DEFAULT_LANGUAGE = Language.FRENCH
+
+
 def _language(shop: Shop, lang: str | None) -> Language:
     try:
-        return Language(lang) if lang else shop.default_language
+        return Language(lang) if lang else FORM_DEFAULT_LANGUAGE
     except ValueError:
-        return shop.default_language
+        return FORM_DEFAULT_LANGUAGE
 
 
 def _render(
@@ -66,6 +72,7 @@ def _render(
             "t": form_texts(lang),
             "lang": lang.value,
             "html_lang": lang.value if lang is not Language.DARIJA else "fr-TN",
+            "form_languages": FORM_LANGUAGES,
             "rtl": lang is Language.ARABIC,
             "governorates": TN_GOVERNORATES,
             "products": shop.form_products or [],
