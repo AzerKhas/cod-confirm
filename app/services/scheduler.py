@@ -25,6 +25,7 @@ from app.enums import Actor, Direction, MessageStatus, MessageType, OrderStatus
 from app.models import Event, MessageLog, Order, Shop
 from app.services import messages as m
 from app.services.alerts import notify_owner
+from app.services.billing import billing_jobs
 from app.services.notify import send_order_confirmation, send_order_template
 from app.services.orders import transition
 from app.services.privacy import purge_expired
@@ -199,6 +200,7 @@ def tick(now: datetime | None = None) -> None:
                 process_reminders(db, shop, now)
                 send_shipped_notices(db, shop, now)
                 sync_shop(db, shop)
+                billing_jobs(db, shop, now)
                 daily_jobs(db, shop, now)
             except Exception:
                 log.exception("scheduler: shop jobs failed", extra={"shop_id": shop_id})

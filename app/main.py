@@ -18,7 +18,7 @@ from app.config import get_settings
 from app.logging_config import configure_logging
 from app.middleware import BodySizeLimitMiddleware, SecurityHeadersMiddleware
 from app.monitoring import setup_monitoring
-from app.routers import admin, dashboard, health, intake, order_form, webhook_meta
+from app.routers import admin, billing, dashboard, health, intake, order_form, webhook_meta
 
 log = logging.getLogger("cod_confirm")
 
@@ -65,6 +65,7 @@ def create_app() -> FastAPI:
     app.include_router(webhook_meta.router)
     app.include_router(dashboard.router)
     app.include_router(admin.router)
+    app.include_router(billing.router)
 
     app.add_middleware(
         SessionMiddleware,

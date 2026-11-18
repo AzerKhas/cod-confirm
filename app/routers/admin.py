@@ -20,9 +20,10 @@ from app.auth import csrf_protect, csrf_token, hash_password, require_superadmin
 from app.crypto import encrypt_secret
 from app.db import get_db
 from app.enums import Language, OrderStatus, Role
-from app.models import Order, Shop, UsageCounter, User
+from app.models import Order, Payment, Shop, UsageCounter, User
 from app.plans import PLANS, Plan, hard_quota
 from app.security import generate_api_key
+from app.services.billing import BillingError, record_manual, today_for, trial_end
 from app.services.usage import month_key
 from app.templating import templates
 
@@ -127,6 +128,8 @@ def create_shop(
     password = secrets.token_urlsafe(12)
     shop = Shop(name=name.strip(), slug=slug, plan=plan_v.value, default_language=lang_v,
                 api_key_hash=key_hash, api_key_prefix=prefix)  # fmt: skip
+    if plan_v is Plan.TRIAL:
+        shop.paid_until = trial_end(today_for(shop))
     db.add(shop)
     db.flush()
     db.add(
@@ -161,10 +164,13 @@ def shop_detail(
         ).all()
     )
     users = db.scalars(select(User).where(User.shop_id == shop.id)).all()
+    payments = db.scalars(
+        select(Payment).where(Payment.shop_id == shop.id).order_by(Payment.id.desc()).limit(20)
+    ).all()
     return templates.TemplateResponse(
         request, "admin/shop_detail.html",
         _ctx(request, user, shop=shop, history=history, by_status=by_status, users=users,
-             statuses=list(OrderStatus), hard_quota=hard_quota(shop.plan),
+             statuses=list(OrderStatus), hard_quota=hard_quota(shop.plan), payments=payments,
              connected=bool(shop.whatsapp_phone_number_id and shop.access_token_encrypted),
              flash=request.query_params.get("msg")),
     )  # fmt: skip
@@ -286,3 +292,24 @@ def reset_password(
         _ctx(request, user, shop=target.shop, api_key=None, owner_email=target.email,
              password=password),
     )  # fmt: skip
+
+
+@router.post("/shops/{shop_id}/payments", dependencies=[Depends(csrf_protect)])
+def add_manual_payment(
+    shop_id: int,
+    plan: str = Form(max_length=20),
+    months: int = Form(ge=1, le=24),
+    amount: str = Form(max_length=20),
+    note: str = Form(default="", max_length=200),
+    user: User = Depends(require_superadmin),
+    db: Session = Depends(get_db),
+) -> RedirectResponse:
+    """Bank transfer / cash received outside Konnect / Flouci."""
+    shop = _shop(db, shop_id)
+    try:
+        millimes = round(float(amount.replace(",", ".")) * 1000)
+        record_manual(db, shop, plan, months, millimes, note.strip() or "virement / espèces", user)
+    except (ValueError, BillingError):
+        db.rollback()
+        return _back(shop, "invalid")
+    return _back(shop, "saved")

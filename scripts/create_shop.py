@@ -7,10 +7,12 @@
 from __future__ import annotations
 
 import argparse
+from datetime import date, timedelta
 from decimal import Decimal
 
 from sqlalchemy import select
 
+from app.config import get_settings
 from app.db import SessionLocal
 from app.enums import Language
 from app.models import Shop
@@ -43,6 +45,8 @@ def main() -> None:
                 form_products=products,
                 api_key_hash=key_hash,
                 api_key_prefix=prefix,
+                plan="trial",
+                paid_until=date.today() + timedelta(days=get_settings().trial_days),
             )
         )
         db.commit()

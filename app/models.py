@@ -103,6 +103,8 @@ class Shop(Base):
     plan: Mapped[str] = mapped_column(String(20), default="trial", server_default="trial")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     paid_until: Mapped[date | None] = mapped_column(Date)
+    # Last local date a billing reminder / suspension notice was sent (once a day max).
+    billing_notice_on: Mapped[date | None] = mapped_column(Date)
 
     # Google Sheets sync (optional): id of the sheet shared with the service account.
     google_sheet_id: Mapped[str | None] = mapped_column(String(100))
@@ -287,3 +289,33 @@ class UsageCounter(Base):
     month: Mapped[str] = mapped_column(String(7))  # "2026-11" (UTC)
     orders: Mapped[int] = mapped_column(Integer, default=0)
     messages_sent: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class Payment(Base):
+    """A subscription payment (Konnect, Flouci, manual transfer / cash, or demo)."""
+
+    __tablename__ = "payments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    shop_id: Mapped[int] = mapped_column(ForeignKey("shops.id", ondelete="CASCADE"), index=True)
+    provider: Mapped[str] = mapped_column(String(20))  # konnect | flouci | manual | demo
+    plan: Mapped[str] = mapped_column(String(20))
+    months: Mapped[int] = mapped_column(Integer)
+    amount_millimes: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(12), default="pending", index=True)
+    # Provider reference (Konnect paymentRef / Flouci payment_id): unique per provider.
+    provider_ref: Mapped[str | None] = mapped_column(String(100))
+    pay_url: Mapped[str | None] = mapped_column(Text)
+    note: Mapped[str | None] = mapped_column(String(300))
+    invoice_number: Mapped[str | None] = mapped_column(String(30), unique=True)
+    period_start: Mapped[date | None] = mapped_column(Date)
+    period_end: Mapped[date | None] = mapped_column(Date)
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    checks: Mapped[int] = mapped_column(Integer, default=0)
+    checked_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
+    paid_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+    __table_args__ = (UniqueConstraint("provider", "provider_ref", name="uq_payment_provider_ref"),)
+
+    shop: Mapped[Shop] = relationship()

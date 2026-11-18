@@ -19,6 +19,11 @@
     }
   });
 
+  // <button data-print> prints the page (receipts).
+  document.addEventListener("click", function (event) {
+    if (event.target.closest("[data-print]")) window.print();
+  });
+
   // Mobile navigation drawer.
   document.addEventListener("click", function (event) {
     if (event.target.closest("[data-nav-toggle]")) {

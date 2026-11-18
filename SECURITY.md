@@ -70,6 +70,13 @@ on private pages. API docs (`/docs`, `/openapi.json`) disabled in prod.
 - WhatsApp tokens and webhook secrets encrypted at rest with Fernet (`ENCRYPTION_KEY`).
 - Secrets are never shown back in the UI (empty field = keep the stored value).
 
+**Payments**
+Card data never touches COD Confirm (hosted Konnect / Flouci pages). Prices are computed
+server-side; every payment is re-verified with the provider's API before being applied,
+applied once (idempotent), and rejected when the verified amount is lower than the price.
+Provider keys come from the environment; callbacks are rate-limited and carry no trusted data.
+The demo checkout is disabled in production.
+
 **WhatsApp policy**
 Official Cloud API only; business-initiated messages only with approved templates;
 free-form replies only inside the 24 h window; STOP / `ma t3awedch` / `توقف` honoured

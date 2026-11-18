@@ -1,0 +1,100 @@
+{% extends "dashboard/layout.html" %}
+{% from "_ui.html" import empty with context %}
+{% block title %}Abonnement – {{ shop.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Abonnement</h1><p class="sub">Payez en ligne par carte bancaire, e-DINAR ou wallet. Activation immédiate.</p></div>
+</div>
+
+<section class="grid grid-2">
+  <div class="card kpi hero">
+    <span class="label"><span class="ico">{{ icon('shield') }}</span>Plan actuel</span>
+    <div class="value-row"><span class="value">{{ current.label }}</span></div>
+    <span class="foot">
+      {% if not shop.is_active %}Suspendu — renouvelez pour relancer les confirmations
+      {% elif shop.paid_until %}{{ 'Essai' if shop.plan == 'trial' else 'Actif' }} jusqu'au {{ shop.paid_until.strftime('%d/%m/%Y') }}{% if state.days_left is not none and state.days_left >= 0 %} · {{ state.days_left }} jour(s){% endif %}
+      {% else %}Sans date de fin{% endif %}
+    </span>
+  </div>
+  <div class="card kpi">
+    <span class="label"><span class="ico brand">{{ icon('package') }}</span>Commandes ce mois</span>
+    <div class="value-row"><span class="value">{{ used }}<small>/ {{ current.monthly_orders }}</small></span></div>
+    <div class="meter"><svg viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true">
+      <rect class="track" width="100" height="8" rx="4"/>
+      {% set ratio = [used / current.monthly_orders, 1]|min if current.monthly_orders else 0 %}
+      {% if ratio > 0 %}<rect class="fill {{ 'over' if used > current.monthly_orders }}" width="{{ '%.1f'|format(ratio * 100) }}" height="8" rx="4"/>{% endif %}
+    </svg></div>
+    <span class="foot">Au-delà de +10 %, les commandes sont enregistrées mais les messages s'arrêtent.</span>
+  </div>
+</section>
+
+<h2 class="mt-24">Choisir un plan</h2>
+{% if providers %}
+<div class="grid plans mt-16">
+  {% for o in offers %}
+  <form method="post" action="/dashboard/billing/checkout" class="card plan-card {{ 'featured' if o.plan.value == 'pro' }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <input type="hidden" name="plan" value="{{ o.plan.value }}">
+    <div class="card-body stack">
+      <div class="row"><h3 class="plan-name">{{ o.limits.label }}</h3>
+        {% if o.plan.value == 'pro' %}<span class="tag tag-brand ml-auto">Le plus choisi</span>{% endif %}
+        {% if shop.plan == o.plan.value %}<span class="tag ml-auto">Plan actuel</span>{% endif %}</div>
+      <div class="price"><b>{{ o.limits.price_tnd }}</b> DT <span class="muted">/ mois</span></div>
+      <ul class="features">
+        <li>{{ icon('check', 'sm') }} {{ '{:,}'.format(o.limits.monthly_orders).replace(',', ' ') }} commandes / mois</li>
+        <li>{{ icon('check', 'sm') }} Confirmation WhatsApp darija / arabe / français</li>
+        <li>{{ icon('check', 'sm') }} Relances, tableau de bord, export CSV</li>
+        <li>{{ icon('check', 'sm') }} Alertes Telegram, synchronisation Google Sheets</li>
+      </ul>
+      <fieldset class="periods">
+        <legend class="label-text">Durée</legend>
+        {% for m, (label, factor) in durations.items() %}
+          <label class="period">
+            <input type="radio" name="months" value="{{ m }}" {% if m == 1 %}checked{% endif %}>
+            <span><b>{{ label }}</b> · {{ o.prices[m] }} DT{% if factor < 1 %} <em class="save">−{{ ((1 - factor) * 100)|round|int }} %</em>{% endif %}</span>
+          </label>
+        {% endfor %}
+      </fieldset>
+      <div class="field">
+        <label class="label-text" for="prov-{{ o.plan.value }}">Moyen de paiement</label>
+        <select class="select" id="prov-{{ o.plan.value }}" name="provider">
+          {% for name, p in providers.items() %}<option value="{{ name }}">{{ p.label }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn {{ 'btn-primary' if o.plan.value == 'pro' else '' }} btn-block btn-lg">{{ icon('wallet') }} Payer et activer</button>
+    </div>
+  </form>
+  {% endfor %}
+</div>
+<p class="small muted mt-8">{{ icon('shield', 'sm') }} Paiement sécurisé sur la page de Konnect ou Flouci : vos données bancaires ne passent jamais par COD Confirm. Un paiement prolonge votre abonnement à partir de sa date de fin actuelle.</p>
+{% else %}
+<div class="alert alert-warn mt-16">{{ icon('alert') }}<span>Le paiement en ligne n'est pas encore activé. Contactez-nous pour payer par virement.</span></div>
+{% endif %}
+
+<section class="card mt-24">
+  <div class="card-head"><h2>Historique des paiements</h2></div>
+  {% if payments %}
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Date</th><th>Plan</th><th>Période</th><th>Moyen</th><th class="right">Montant</th><th>Statut</th><th></th></tr></thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td class="nowrap">{{ p.created_at|local_dt(shop.timezone, '%d/%m/%Y') }}</td>
+        <td>{{ plan_labels.get(p.plan, p.plan) }} · {{ p.months }} mois</td>
+        <td class="nowrap small">{% if p.period_start %}{{ p.period_start.strftime('%d/%m/%y') }} → {{ p.period_end.strftime('%d/%m/%y') }}{% else %}—{% endif %}</td>
+        <td>{{ {'konnect': 'Konnect', 'flouci': 'Flouci', 'manual': 'Virement / espèces', 'demo': 'Démo'}.get(p.provider, p.provider) }}</td>
+        <td class="right num strong nowrap">{{ (p.amount_millimes / 1000)|round|int }} DT</td>
+        <td><span class="pill pill-{{ {'paid': 'good', 'pending': 'pending', 'failed': 'bad', 'expired': 'new'}[p.status] }}">{{ {'paid': 'Payé', 'pending': 'En attente', 'failed': 'Échoué', 'expired': 'Expiré'}[p.status] }}</span></td>
+        <td class="right">{% if p.status == 'paid' %}<a class="link small" href="/dashboard/billing/receipts/{{ p.id }}">Reçu</a>
+            {% elif p.status == 'pending' and p.pay_url %}<a class="link small" href="{{ p.pay_url }}">Reprendre</a>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+    {{ empty('Aucun paiement pour le moment', '', 'wallet') }}
+  {% endif %}
+</section>
+{% endblock %}

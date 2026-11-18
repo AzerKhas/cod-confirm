@@ -57,6 +57,29 @@
   </section>
 
   <section class="card">
+    <div class="card-head"><h2>Paiements</h2></div>
+    {% if payments %}
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Date</th><th>Plan</th><th>Moyen</th><th class="right">Montant</th><th>Statut</th></tr></thead>
+      <tbody>{% for p in payments %}<tr>
+        <td class="nowrap">{{ p.created_at|local_dt(shop.timezone, '%d/%m/%Y') }}</td><td>{{ p.plan }} · {{ p.months }} mois</td>
+        <td>{{ p.provider }}</td><td class="right num">{{ (p.amount_millimes / 1000)|round|int }} DT</td>
+        <td><span class="pill pill-{{ {'paid': 'good', 'pending': 'pending', 'failed': 'bad', 'expired': 'new'}[p.status] }}">{{ p.status }}</span></td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+    {% endif %}
+    <form method="post" action="/admin/shops/{{ shop.id }}/payments" class="card-body form-grid">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <div class="field"><label for="mp-plan">Plan</label><select class="select" id="mp-plan" name="plan">
+        {% for p, l in plans.items() if l.price_tnd > 0 %}<option value="{{ p.value }}" {% if shop.plan == p.value %}selected{% endif %}>{{ l.label }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="mp-months">Mois</label><input class="input" id="mp-months" name="months" type="number" min="1" max="24" value="1"></div>
+      <div class="field"><label for="mp-amount">Montant reçu (DT)</label><input class="input" id="mp-amount" name="amount" inputmode="decimal" required></div>
+      <div class="field"><label for="mp-note">Note</label><input class="input" id="mp-note" name="note" maxlength="200" placeholder="virement BIAT 12/11"></div>
+      <div class="span-2"><button class="btn">{{ icon('plus', 'sm') }} Enregistrer un paiement manuel</button></div>
+    </form>
+  </section>
+
+  <section class="card">
     <div class="card-head"><h2>Comptes</h2></div>
     <ul class="list">{% for u in users %}
       <li>{{ avatar(u.email, u.id) }}<div><b>{{ u.email }}</b><div class="meta">{{ u.role.value }}{% if not u.is_active %} · inactif{% endif %}</div></div>

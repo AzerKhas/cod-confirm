@@ -15,6 +15,8 @@
     {% if user.role.value == 'owner' %}
       <div class="nav-section">Boutique</div>
       <a class="nav-link {{ 'active' if nav == 'settings' }}" href="/dashboard/settings">{{ icon('settings') }} Réglages</a>
+      <a class="nav-link {{ 'active' if nav == 'billing' }}" href="/dashboard/billing">{{ icon('wallet') }} Abonnement
+        {% if billing and billing.needs_attention %}<span class="count">!</span>{% endif %}</a>
       <a class="nav-link" href="/form/{{ shop.slug }}" target="_blank" rel="noopener">{{ icon('link') }} Formulaire public</a>
     {% endif %}
     <div class="sidebar-foot">
@@ -36,6 +38,11 @@
       <b>{{ shop.name }}</b>
     </header>
     <main class="content">
+      {% if billing and billing.needs_attention and nav != 'billing' %}
+        <div class="alert {{ 'alert-danger' if billing.status in ('grace', 'suspended') else 'alert-warn' }} banner">{{ icon('alert') }}
+          <span>{{ billing.label }}</span>
+          {% if user.role.value == 'owner' %}<a class="btn btn-sm ml-auto" href="/dashboard/billing">Renouveler</a>{% endif %}</div>
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
   </div>

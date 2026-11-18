@@ -154,6 +154,21 @@ Runs inside the app (`SCHEDULER_ENABLED=true`) every minute. **Enable it on one 
 - No answer → reminder after 3 h, second after 24 h (`shops.reminder_delays`), then NO_ANSWER 24 h later.
 - Every evening (21:00) → summary to the owner on Telegram + purge of data older than `shops.data_retention_days`.
 
+## Subscriptions & payments
+
+Sellers pay their plan in **Dashboard → Abonnement** (1, 3 or 12 months; 12 months = 10 paid)
+with **Konnect** (bank card, e-DINAR, wallet) or **Flouci** (Flouci wallet, bank card).
+
+- Configure `KONNECT_API_KEY` + `KONNECT_WALLET_ID` and/or `FLOUCI_PUBLIC_KEY` + `FLOUCI_PRIVATE_KEY`,
+  and `PUBLIC_BASE_URL=https://your-domain`. Start with `KONNECT_SANDBOX=true`.
+- The price is computed on the server; the payment is always re-verified with the provider's API
+  (redirects and webhooks are never trusted) and applied once (receipt `CC-YYYY-000123`).
+- New shops get a free trial (`TRIAL_DAYS`, 14). Reminders 3 days before and on the expiry day;
+  `BILLING_GRACE_DAYS` (3) after expiry the shop is suspended (no messages, data kept) and comes
+  back as soon as it pays.
+- Bank transfer / cash: `/admin` → shop → *Enregistrer un paiement manuel*.
+- Without keys (dev), a **demo** checkout simulates payments; it is disabled in production.
+
 ## Google Sheets (optional)
 
 1. Google Cloud console → create a project → enable the **Google Sheets API** → create a

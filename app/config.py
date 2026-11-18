@@ -55,6 +55,19 @@ class Settings(BaseSettings):
     operator_telegram_chat_id: str = ""
     sentry_dsn: SecretStr = SecretStr("")
 
+    # Subscription payments (Tunisia). A provider is enabled when its keys are set.
+    # Public URL of the app, used to build payment return / webhook URLs.
+    public_base_url: str = ""
+    konnect_api_key: SecretStr = SecretStr("")
+    konnect_wallet_id: str = ""
+    konnect_sandbox: bool = True
+    flouci_public_key: str = ""
+    flouci_private_key: SecretStr = SecretStr("")
+    # Demo checkout (no real money) for local dev / sales demos - never in prod.
+    payments_demo: bool = True
+    trial_days: int = Field(default=14, ge=0, le=90)
+    billing_grace_days: int = Field(default=3, ge=0, le=30)
+
     # Google Sheets sync: path to the service-account JSON key (optional).
     google_service_account_file: str = ""
 
@@ -102,6 +115,9 @@ class Settings(BaseSettings):
                 raise ValueError("SECRET_KEY must be at least 32 characters in prod")
             if not self.dry_run and not self.meta_app_secret.get_secret_value():
                 raise ValueError("META_APP_SECRET is required when DRY_RUN=false in prod")
+            real_payments = self.konnect_api_key.get_secret_value() or self.flouci_public_key
+            if real_payments and not self.public_base_url.startswith("https://"):
+                raise ValueError("PUBLIC_BASE_URL (https://...) is required for online payments")
             if self.allowed_hosts.strip() in ("", "*"):
                 raise ValueError("ALLOWED_HOSTS must list your domain(s) in prod")
             keys = [k.strip() for k in self.encryption_key.get_secret_value().split(",")]

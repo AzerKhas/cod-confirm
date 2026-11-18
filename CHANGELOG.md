@@ -1,5 +1,12 @@
 # Changelog
 
+## Subscription payments (Konnect / Flouci)
+- `services/payments.py`: Konnect API v2 (`init-payment`, `GET /payments/{ref}`, webhook `?payment_ref=`) and Flouci API v2 (`generate_payment`, `verify_payment`) clients, sandbox/production, plus a demo checkout for dev and sales demos (disabled in prod).
+- `services/billing.py`: server-side prices (1 / 3 / 12 months, 12 = 10 paid), checkout, re-verification with the provider before applying, idempotent activation (plan, `paid_until` extended from the current end, re-activation, receipt number), amount-mismatch protection, manual payments (transfer / cash).
+- Scheduler: spaced verification of pending payments (max 6, every 10 min — Flouci bans aggressive polling), expiry after 24 h, Telegram reminders 3 days before and on the expiry day, automatic suspension after the grace period, 14-day trial for new shops.
+- Dashboard → Abonnement: current plan, usage meter, plan cards with periods and discounts, payment method choice, history, printable receipts; expiry banner and badge everywhere; admin: payments list + manual payment form.
+- `PUBLIC_BASE_URL` (https) required in prod with real providers. Migration `0009`. 497 tests.
+
 ## Dashboard redesign
 - Self-hosted design system (`app/static/app.css`): no CSS framework or CDN, light + dark mode (OS setting or toggle, remembered), responsive (sidebar becomes a drawer on phones), inline SVG icons (`app/icons.py`), favicon.
 - Stricter CSP: `style-src 'self'` and `script-src 'self'` + HTMX with SRI only — no Tailwind CDN, no inline styles or scripts (tested).

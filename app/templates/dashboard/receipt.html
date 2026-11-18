@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Reçu {{ payment.invoice_number }}{% endblock %}
+{% block body %}
+<main class="public">
+  <article class="card receipt public-card">
+    <div class="card-body stack">
+      <div class="row">
+        <span class="brand-mark">{{ icon('check') }}</span><b>COD Confirm</b>
+        <span class="ml-auto muted small">Reçu n° <b>{{ payment.invoice_number }}</b></span>
+      </div>
+      <h1>Reçu de paiement</h1>
+      <dl class="dl">
+        <dt>Client</dt><dd>{{ shop.name }}</dd>
+        <dt>Date</dt><dd>{{ payment.paid_at|local_dt(shop.timezone, '%d/%m/%Y %H:%M') }}</dd>
+        <dt>Abonnement</dt><dd>{{ plan.label }} · {{ payment.months }} mois</dd>
+        <dt>Période</dt><dd>{{ payment.period_start.strftime('%d/%m/%Y') }} → {{ payment.period_end.strftime('%d/%m/%Y') }}</dd>
+        <dt>Moyen de paiement</dt><dd>{{ {'konnect': 'Konnect', 'flouci': 'Flouci', 'manual': 'Virement / espèces', 'demo': 'Démo'}.get(payment.provider, payment.provider) }}</dd>
+        {% if payment.provider_ref and payment.provider != 'demo' %}<dt>Référence</dt><dd><code>{{ payment.provider_ref }}</code></dd>{% endif %}
+        <dt>Montant payé</dt><dd class="strong">{{ '%.3f'|format(payment.amount_millimes / 1000) }} TND</dd>
+      </dl>
+      <p class="xs muted">Ce reçu confirme le paiement. Pour une facture avec matricule fiscal, contactez-nous.</p>
+      <div class="row no-print"><a class="btn" href="/dashboard/billing">{{ icon('arrow-left', 'sm') }} Retour</a><button type="button" class="btn btn-primary ml-auto" data-print>Imprimer</button></div>
+    </div>
+  </article>
+</main>
+{% endblock %}

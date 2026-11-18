@@ -1,0 +1,21 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Paiement (démo){% endblock %}
+{% block content %}
+<div class="page-head"><div><a href="/dashboard/billing" class="crumb">{{ icon('arrow-left', 'sm') }} Abonnement</a><h1>Paiement de démonstration</h1>
+  <p class="sub">Cette page remplace Konnect / Flouci en local : aucun argent n'est débité.</p></div></div>
+<section class="card public-card">
+  <div class="card-body stack">
+    <div class="alert alert-warn">{{ icon('alert') }}<span>Mode démo — désactivé automatiquement en production.</span></div>
+    <dl class="dl">
+      <dt>Plan</dt><dd>{{ plan.label }} · {{ payment.months }} mois</dd>
+      <dt>Montant</dt><dd class="strong">{{ (payment.amount_millimes / 1000)|round|int }} DT</dd>
+    </dl>
+    <div class="row">
+      <form method="post" action="/billing/demo/{{ payment.id }}"><input type="hidden" name="csrf_token" value="{{ csrf }}"><input type="hidden" name="result" value="fail">
+        <button class="btn btn-danger">{{ icon('x-circle') }} Simuler un échec</button></form>
+      <form method="post" action="/billing/demo/{{ payment.id }}" class="ml-auto"><input type="hidden" name="csrf_token" value="{{ csrf }}"><input type="hidden" name="result" value="success">
+        <button class="btn btn-primary">{{ icon('check') }} Simuler un paiement réussi</button></form>
+    </div>
+  </div>
+</section>
+{% endblock %}
