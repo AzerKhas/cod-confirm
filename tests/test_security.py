@@ -31,7 +31,8 @@ def test_security_headers(client: TestClient, path: str) -> None:
     assert h["referrer-policy"] == "strict-origin-when-cross-origin"
     csp = h["content-security-policy"]
     assert "frame-ancestors 'none'" in csp and "object-src 'none'" in csp
-    assert "'unsafe-inline'" not in csp.split("script-src")[1].split(";")[0]  # no inline scripts
+    assert "'unsafe-inline'" not in csp  # no inline scripts nor inline styles
+    assert "tailwindcss" not in csp  # design system is self-hosted
 
 
 def test_private_pages_not_cached(client: TestClient) -> None:
@@ -45,6 +46,13 @@ def test_no_inline_javascript_in_templates() -> None:
         text = tpl.read_text(encoding="utf-8")
         assert not inline_handler.search(text), f"inline event handler in {tpl.name}"
         assert not inline_script.search(text), f"inline <script> in {tpl.name}"
+
+
+def test_no_inline_styles_in_templates() -> None:
+    for tpl in TEMPLATES.rglob("*.html"):
+        text = tpl.read_text(encoding="utf-8")
+        assert not re.search(r"\sstyle\s*=", text), f"inline style attribute in {tpl.name}"
+        assert "<style" not in text, f"<style> block in {tpl.name}"
 
 
 def test_static_js_served(client: TestClient) -> None:

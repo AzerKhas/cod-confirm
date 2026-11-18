@@ -1,39 +1,66 @@
 {% extends "dashboard/layout.html" %}
 {% block title %}Réglages – {{ shop.name }}{% endblock %}
 {% block content %}
-<h1 class="mb-4 text-xl font-bold">Réglages de la boutique</h1>
-{% if flash == 'saved' %}<div class="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">Réglages enregistrés.</div>{% endif %}
-{% if flash == 'invalid' %}<div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">Valeurs invalides, rien n'a été modifié.</div>{% endif %}
+<div class="page-head">
+  <div><h1>Réglages</h1><p class="sub">Comment le bot parle à vos clients et comment vous êtes prévenu.</p></div>
+</div>
 
-<form method="post" action="/dashboard/settings" class="grid max-w-3xl gap-4 rounded-2xl bg-white p-5 text-sm shadow-sm md:grid-cols-2">
+<form method="post" action="/dashboard/settings" class="card">
   <input type="hidden" name="csrf_token" value="{{ csrf }}">
-  <label class="md:col-span-2">Nom affiché aux clients
-    <input name="name" value="{{ shop.name }}" maxlength="120" required class="mt-1 w-full rounded border px-2 py-1.5"></label>
-  <label>Langue des messages
-    <select name="default_language" class="mt-1 w-full rounded border bg-white px-2 py-1.5">
-      {% for l in languages %}<option value="{{ l.value }}" {% if shop.default_language == l %}selected{% endif %}>{{ {'darija': 'Darija (latin)', 'ar': 'Arabe', 'fr': 'Français'}[l.value] }}</option>{% endfor %}
-    </select></label>
-  <label>Frais de livraison (DT, pour le calcul des économies)
-    <input name="delivery_fee" value="{{ shop.delivery_fee }}" inputmode="decimal" class="mt-1 w-full rounded border px-2 py-1.5"></label>
-  <label>1re relance après (heures)
-    <input name="reminder_1" type="number" min="1" max="72" value="{{ shop.reminder_delays[0] if shop.reminder_delays else 3 }}" class="mt-1 w-full rounded border px-2 py-1.5"></label>
-  <label>2e relance après (heures)
-    <input name="reminder_2" type="number" min="1" max="168" value="{{ shop.reminder_delays[1] if shop.reminder_delays|length > 1 else 24 }}" class="mt-1 w-full rounded border px-2 py-1.5"></label>
-  <label>Conservation des données (jours)
-    <input name="data_retention_days" type="number" min="30" max="3650" value="{{ shop.data_retention_days }}" class="mt-1 w-full rounded border px-2 py-1.5"></label>
-  <label>Telegram chat id (alertes)
-    <input name="owner_telegram_chat_id" value="{{ shop.owner_telegram_chat_id or '' }}" maxlength="40" class="mt-1 w-full rounded border px-2 py-1.5"></label>
-  <label class="md:col-span-2">Google Sheet (optionnel) – id de la feuille
-    <input name="google_sheet_id" value="{{ shop.google_sheet_id or '' }}" maxlength="100" pattern="[A-Za-z0-9_-]*"
-           placeholder="1AbC…  (dans l'URL docs.google.com/spreadsheets/d/<id>/edit)" class="mt-1 w-full rounded border px-2 py-1.5 font-mono">
-    {% if sa_email %}<span class="text-xs text-slate-500">Partagez la feuille (Éditeur) avec <code>{{ sa_email }}</code>.</span>{% endif %}
-  </label>
-  <label class="md:col-span-2">Produits du formulaire (un par ligne : <code>Nom = prix</code>)
-    <textarea name="products" rows="6" class="mt-1 w-full rounded border px-2 py-1.5 font-mono">{{ products }}</textarea></label>
-  <div class="md:col-span-2 text-slate-500">
-    Formulaire public : <a class="text-emerald-700" href="/form/{{ shop.slug }}" target="_blank">/form/{{ shop.slug }}</a> ·
-    Clé API : <code>{{ shop.api_key_prefix }}…</code>
+
+  <div class="form-section">
+    <div class="intro"><h3>Boutique</h3><p>Le nom apparaît dans chaque message WhatsApp.</p></div>
+    <div class="form-grid">
+      <div class="field span-2"><label for="name">Nom affiché aux clients</label>
+        <input class="input" id="name" name="name" value="{{ shop.name }}" maxlength="120" required></div>
+      <div class="field"><label for="lang">Langue des messages</label>
+        <select class="select" id="lang" name="default_language">
+          {% for l in languages %}<option value="{{ l.value }}" {% if shop.default_language == l %}selected{% endif %}>{{ {'darija': 'Darija (latin)', 'ar': 'Arabe', 'fr': 'Français'}[l.value] }}</option>{% endfor %}
+        </select>
+        <span class="hint">Un client qui écrit en arabe reçoit automatiquement les réponses en arabe.</span></div>
+      <div class="field"><label for="fee">Frais de livraison (DT)</label>
+        <input class="input" id="fee" name="delivery_fee" value="{{ shop.delivery_fee }}" inputmode="decimal">
+        <span class="hint">Sert à calculer l'argent économisé.</span></div>
+    </div>
   </div>
-  <button class="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white md:col-span-2 md:w-48">Enregistrer</button>
+
+  <div class="form-section">
+    <div class="intro"><h3>Relances</h3><p>Jamais entre 22h et 8h. Sans réponse après la 2e relance, la commande passe « Sans réponse ».</p></div>
+    <div class="form-grid">
+      <div class="field"><label for="r1">1re relance après (heures)</label>
+        <input class="input" id="r1" name="reminder_1" type="number" min="1" max="72" value="{{ shop.reminder_delays[0] if shop.reminder_delays else 3 }}"></div>
+      <div class="field"><label for="r2">2e relance après (heures)</label>
+        <input class="input" id="r2" name="reminder_2" type="number" min="1" max="168" value="{{ shop.reminder_delays[1] if shop.reminder_delays|length > 1 else 24 }}"></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="intro"><h3>Formulaire de commande</h3><p>Pour vos pages Facebook / Instagram. Un produit par ligne : <code>Nom = prix</code>.</p></div>
+    <div class="stack">
+      <div class="field"><label for="products">Produits</label>
+        <textarea class="textarea input mono" id="products" name="products" rows="6">{{ products }}</textarea></div>
+      <div class="row small">
+        <span class="text-2">Lien public :</span>
+        <a class="link" href="/form/{{ shop.slug }}" target="_blank" rel="noopener">/form/{{ shop.slug }}</a>
+        <span class="text-2 ml-auto">Clé API : <code>{{ shop.api_key_prefix }}…</code></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="intro"><h3>Alertes & intégrations</h3><p>Recevez les demandes de modification et le résumé du soir sur Telegram.</p></div>
+    <div class="form-grid">
+      <div class="field"><label for="tg">Telegram chat id</label>
+        <input class="input" id="tg" name="owner_telegram_chat_id" value="{{ shop.owner_telegram_chat_id or '' }}" maxlength="40"></div>
+      <div class="field"><label for="ret">Conservation des données (jours)</label>
+        <input class="input" id="ret" name="data_retention_days" type="number" min="30" max="3650" value="{{ shop.data_retention_days }}"></div>
+      <div class="field span-2"><label for="sheet">Google Sheet (optionnel)</label>
+        <input class="input mono" id="sheet" name="google_sheet_id" value="{{ shop.google_sheet_id or '' }}" maxlength="100" pattern="[A-Za-z0-9_-]*"
+               placeholder="id dans l'URL docs.google.com/spreadsheets/d/<id>/edit">
+        {% if sa_email %}<span class="hint">Partagez la feuille (Éditeur) avec <code>{{ sa_email }}</code>.</span>{% endif %}</div>
+    </div>
+  </div>
+
+  <div class="form-foot"><button class="btn btn-primary">{{ icon('check') }} Enregistrer</button></div>
 </form>
 {% endblock %}

@@ -36,6 +36,11 @@ FORM_TEXTS: dict[Language, dict[str, str]] = {
         "err_phone": "Noumrou mouch s7i7. Ekteb 8 ar9am, mathalan 98 123 456",
         "err_product": "A5tar produit",
         "err_generic": "Fama ghalta, thabbet fel ma3loumet w 3awed",
+        "trust_cod": "Lekhlas ki toussel",
+        "trust_whatsapp": "Confirmation 3al WhatsApp",
+        "trust_delivery": "Livraison l kol wileya",
+        "total": "Total",
+        "secure": "Ma3loumetek ma netsarfouch fiha m3a 7ad",
     },
     Language.ARABIC: {
         "title": "اطلب الآن",
@@ -56,6 +61,11 @@ FORM_TEXTS: dict[Language, dict[str, str]] = {
         "err_phone": "رقم الهاتف غير صحيح. اكتب 8 أرقام، مثلا 98123456",
         "err_product": "اختر المنتج",
         "err_generic": "هناك خطأ، تثبت من المعطيات وأعد المحاولة",
+        "trust_cod": "الدفع عند الاستلام",
+        "trust_whatsapp": "تأكيد عبر واتساب",
+        "trust_delivery": "توصيل لكل الولايات",
+        "total": "المجموع",
+        "secure": "معطياتك لا تُشارك مع أي طرف",
     },
     Language.FRENCH: {
         "title": "Commander maintenant",
@@ -77,6 +87,11 @@ FORM_TEXTS: dict[Language, dict[str, str]] = {
         "err_phone": "Numéro invalide. Saisissez 8 chiffres, ex. 98 123 456",
         "err_product": "Choisissez un produit",
         "err_generic": "Une erreur est survenue, vérifiez les informations",
+        "trust_cod": "Paiement à la livraison",
+        "trust_whatsapp": "Confirmation WhatsApp",
+        "trust_delivery": "Livraison partout en Tunisie",
+        "total": "Total",
+        "secure": "Vos informations ne sont jamais partagées",
     },
 }
 

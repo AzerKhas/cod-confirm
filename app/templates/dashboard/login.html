@@ -1,21 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Connexion – COD Confirm{% endblock %}
 {% block body %}
-<main class="mx-auto max-w-sm px-4 py-20">
-  <h1 class="mb-6 text-center text-2xl font-bold text-emerald-700">COD Confirm</h1>
-  <form method="post" action="/login" class="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
-    {% if error %}<div class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ error }}</div>{% endif %}
-    <div>
-      <label class="block text-sm font-medium" for="email">Email</label>
-      <input id="email" name="email" type="email" required autocomplete="username" maxlength="254"
-             class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
+<div class="auth">
+  <aside class="auth-aside">
+    <div class="brand"><span class="brand-mark">{{ icon('check') }}</span><span>COD Confirm<small>Confirmation WhatsApp des commandes</small></span></div>
+    <h2>Moins de colis refusés. Plus de commandes livrées.</h2>
+    <p class="lead">Chaque nouvelle commande reçoit un message WhatsApp en darija, en arabe ou en français. Le client confirme en un clic, vous expédiez l'esprit tranquille.</p>
+    <ul>
+      <li>{{ icon('check-circle') }} Confirmation automatique en moins d'une minute</li>
+      <li>{{ icon('clock') }} Relances intelligentes, jamais la nuit</li>
+      <li>{{ icon('chart') }} Taux de confirmation et frais économisés en temps réel</li>
+    </ul>
+    <div class="mock" aria-hidden="true">
+      <div class="bubble out">Salam Ahmed 👋 Commande mte3ek : 1× Robe d'été – 69 DT. Tconfirmi ?</div>
+      <div class="bubble in">ey nconfirmi 👍</div>
     </div>
-    <div>
-      <label class="block text-sm font-medium" for="password">Mot de passe</label>
-      <input id="password" name="password" type="password" required autocomplete="current-password" maxlength="200"
-             class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2">
-    </div>
-    <button class="w-full rounded-xl bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700">Se connecter</button>
-  </form>
-</main>
+  </aside>
+  <main class="auth-main">
+    <form method="post" action="/login" class="auth-card">
+      <div>
+        <h1>Connexion</h1>
+        <p class="text-2 mt-8">Accédez à votre espace boutique.</p>
+      </div>
+      {% if error %}<div class="alert alert-danger" role="alert">{{ icon('alert') }}<span>{{ error }}</span></div>{% endif %}
+      <div class="field">
+        <label for="email">Email</label>
+        <input class="input" id="email" name="email" type="email" required autocomplete="username" maxlength="254" autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input class="input" id="password" name="password" type="password" required autocomplete="current-password" maxlength="200">
+      </div>
+      <button class="btn btn-primary btn-lg btn-block">Se connecter {{ icon('arrow-right') }}</button>
+      <p class="xs muted">Connexion sécurisée · données hébergées en toute confidentialité</p>
+    </form>
+  </main>
+</div>
 {% endblock %}

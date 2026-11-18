@@ -58,8 +58,8 @@ agreement with every seller.
   injection (`'` prefix / RAW input).
 
 **Browser hardening (every response)**
-`Content-Security-Policy` (no inline script, scripts only from self + pinned Tailwind / HTMX
-CDN with SRI for HTMX, `frame-ancestors 'none'`), `X-Frame-Options: DENY`,
+`Content-Security-Policy` (no inline script or style, everything self-hosted except HTMX
+pinned with SRI, `frame-ancestors 'none'`), `X-Frame-Options: DENY`,
 `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`,
 `Cross-Origin-Opener-Policy`, `Strict-Transport-Security` in prod, `Cache-Control: no-store`
 on private pages. API docs (`/docs`, `/openapi.json`) disabled in prod.

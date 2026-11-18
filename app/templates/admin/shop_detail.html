@@ -1,67 +1,77 @@
 {% extends "admin/layout.html" %}
+{% from "_ui.html" import avatar with context %}
 {% block title %}{{ shop.name }} – Admin{% endblock %}
 {% block content %}
-{% if flash == 'saved' %}<div class="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">Enregistré.</div>{% endif %}
-{% if flash in ('invalid', 'exists') %}<div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ 'Données invalides.' if flash == 'invalid' else 'Cet email a déjà un compte.' }}</div>{% endif %}
-<div class="mb-4 flex items-center gap-3">
-  <a href="/admin" class="text-sm text-slate-500">← Boutiques</a>
-  <h1 class="text-xl font-bold">{{ shop.name }}</h1>
-  <span class="text-slate-400">/{{ shop.slug }} · clé {{ shop.api_key_prefix }}…</span>
+<div class="page-head">
+  <div>
+    <a href="/admin" class="crumb">{{ icon('arrow-left', 'sm') }} Boutiques</a>
+    <div class="row"><h1>{{ shop.name }}</h1>{% if shop.is_active %}<span class="pill pill-good">Active</span>{% else %}<span class="pill pill-bad">Suspendue</span>{% endif %}</div>
+    <p class="sub">/{{ shop.slug }} · clé API <code>{{ shop.api_key_prefix }}…</code></p>
+  </div>
 </div>
 
-<div class="grid gap-4 lg:grid-cols-2">
-  <form method="post" action="/admin/shops/{{ shop.id }}/subscription" class="space-y-3 rounded-2xl bg-white p-4 text-sm shadow-sm">
-    <h2 class="font-semibold">Abonnement</h2>
+<div class="grid grid-2">
+  <form method="post" action="/admin/shops/{{ shop.id }}/subscription" class="card">
+    <div class="card-head"><h2>Abonnement</h2></div>
     <input type="hidden" name="csrf_token" value="{{ csrf }}">
-    <label class="block">Plan<select name="plan" class="mt-1 w-full rounded border bg-white px-2 py-1.5">
-      {% for p, l in plans.items() %}<option value="{{ p.value }}" {% if shop.plan == p.value %}selected{% endif %}>{{ l.label }} – {{ l.monthly_orders }} cmd – {{ l.price_tnd }} DT</option>{% endfor %}
-    </select></label>
-    <label class="block">Payé jusqu'au<input type="date" name="paid_until" value="{{ shop.paid_until or '' }}" class="mt-1 w-full rounded border px-2 py-1.5"></label>
-    <label class="flex items-center gap-2"><input type="checkbox" name="is_active" {% if shop.is_active %}checked{% endif %}> Active (décocher = suspendre : plus aucun message envoyé)</label>
-    <p class="text-slate-500">Quota dur ce mois : {{ hard_quota }} commandes.</p>
-    <button class="rounded-lg bg-emerald-600 px-3 py-1.5 font-medium text-white">Enregistrer</button>
+    <div class="card-body stack">
+      <div class="field"><label for="plan">Plan</label><select class="select" id="plan" name="plan">
+        {% for p, l in plans.items() %}<option value="{{ p.value }}" {% if shop.plan == p.value %}selected{% endif %}>{{ l.label }} – {{ l.monthly_orders }} cmd – {{ l.price_tnd }} DT</option>{% endfor %}
+      </select></div>
+      <div class="field"><label for="paid">Payé jusqu'au</label><input class="input" type="date" id="paid" name="paid_until" value="{{ shop.paid_until or '' }}"></div>
+      <label class="check"><input type="checkbox" name="is_active" {% if shop.is_active %}checked{% endif %}> Active <span class="muted small">(décocher = suspendre : plus aucun message envoyé)</span></label>
+      <p class="small muted">Quota dur ce mois : {{ hard_quota }} commandes.</p>
+    </div>
+    <div class="form-foot"><button class="btn btn-primary">Enregistrer</button></div>
   </form>
 
-  <form method="post" action="/admin/shops/{{ shop.id }}/whatsapp" class="space-y-3 rounded-2xl bg-white p-4 text-sm shadow-sm">
-    <h2 class="font-semibold">WhatsApp & intégrations {{ '✅' if connected else '(non connecté)' }}</h2>
+  <form method="post" action="/admin/shops/{{ shop.id }}/whatsapp" class="card">
+    <div class="card-head"><h2>WhatsApp & intégrations</h2>{% if connected %}<span class="pill pill-good ml-auto">Connecté</span>{% else %}<span class="pill pill-new ml-auto">Non connecté</span>{% endif %}</div>
     <input type="hidden" name="csrf_token" value="{{ csrf }}">
-    <label class="block">Phone number ID<input name="phone_number_id" value="{{ shop.whatsapp_phone_number_id or '' }}" pattern="\d*" class="mt-1 w-full rounded border px-2 py-1.5 font-mono"></label>
-    <label class="block">WABA ID<input name="waba_id" value="{{ shop.waba_id or '' }}" pattern="\d*" class="mt-1 w-full rounded border px-2 py-1.5 font-mono"></label>
-    <label class="block">Access token (permanent){% if shop.access_token_encrypted %} – <span class="text-emerald-700">enregistré, laisser vide pour garder</span>{% endif %}
-      <input name="access_token" type="password" autocomplete="off" class="mt-1 w-full rounded border px-2 py-1.5 font-mono"></label>
-    <label class="block">Secret webhook Shopify{% if shop.shopify_webhook_secret %} – <span class="text-emerald-700">enregistré</span>{% endif %}
-      <input name="shopify_secret" type="password" autocomplete="off" class="mt-1 w-full rounded border px-2 py-1.5 font-mono"></label>
-    <label class="block">Secret webhook WooCommerce{% if shop.woocommerce_webhook_secret %} – <span class="text-emerald-700">enregistré</span>{% endif %}
-      <input name="woocommerce_secret" type="password" autocomplete="off" class="mt-1 w-full rounded border px-2 py-1.5 font-mono"></label>
-    <p class="text-xs text-slate-500">Webhooks : <code>/webhooks/shopify/{{ shop.slug }}</code> · <code>/webhooks/woocommerce/{{ shop.slug }}</code></p>
-    <button class="rounded-lg bg-emerald-600 px-3 py-1.5 font-medium text-white">Enregistrer</button>
+    <div class="card-body form-grid">
+      <div class="field"><label for="pnid">Phone number ID</label><input class="input mono" id="pnid" name="phone_number_id" value="{{ shop.whatsapp_phone_number_id or '' }}" pattern="\d*"></div>
+      <div class="field"><label for="waba">WABA ID</label><input class="input mono" id="waba" name="waba_id" value="{{ shop.waba_id or '' }}" pattern="\d*"></div>
+      <div class="field span-2"><label for="tok">Access token (permanent)</label><input class="input mono" id="tok" name="access_token" type="password" autocomplete="off"
+        placeholder="{{ 'Enregistré – laisser vide pour garder' if shop.access_token_encrypted else '' }}"></div>
+      <div class="field"><label for="shs">Secret webhook Shopify</label><input class="input mono" id="shs" name="shopify_secret" type="password" autocomplete="off"
+        placeholder="{{ 'Enregistré' if shop.shopify_webhook_secret else '' }}"></div>
+      <div class="field"><label for="wcs">Secret webhook WooCommerce</label><input class="input mono" id="wcs" name="woocommerce_secret" type="password" autocomplete="off"
+        placeholder="{{ 'Enregistré' if shop.woocommerce_webhook_secret else '' }}"></div>
+      <p class="xs muted span-2">Webhooks : <code>/webhooks/shopify/{{ shop.slug }}</code> · <code>/webhooks/woocommerce/{{ shop.slug }}</code></p>
+    </div>
+    <div class="form-foot"><button class="btn btn-primary">Enregistrer</button></div>
   </form>
 
-  <section class="rounded-2xl bg-white p-4 text-sm shadow-sm">
-    <h2 class="mb-2 font-semibold">Usage mensuel</h2>
-    <table class="w-full"><thead class="text-xs uppercase text-slate-500"><tr><th class="text-left">Mois</th><th class="text-right">Commandes</th><th class="text-right">Messages</th></tr></thead>
-      <tbody>{% for u in history %}<tr><td>{{ u.month }}</td><td class="text-right">{{ u.orders }}</td><td class="text-right">{{ u.messages_sent }}</td></tr>
-      {% else %}<tr><td colspan="3" class="py-2 text-slate-500">Pas encore d'usage.</td></tr>{% endfor %}</tbody></table>
-    <h3 class="mb-1 mt-4 font-semibold">Commandes par statut</h3>
-    <p class="text-slate-600">{% for st in statuses %}{% if by_status.get(st) %}{{ st.value }} : {{ by_status[st] }} · {% endif %}{% endfor %}</p>
+  <section class="card">
+    <div class="card-head"><h2>Usage mensuel</h2></div>
+    <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Mois</th><th class="right">Commandes</th><th class="right">Messages</th></tr></thead>
+      <tbody>{% for u in history %}<tr><td>{{ u.month }}</td><td class="right num">{{ u.orders }}</td><td class="right num">{{ u.messages_sent }}</td></tr>
+      {% else %}<tr><td colspan="3" class="muted">Pas encore d'usage.</td></tr>{% endfor %}</tbody>
+    </table>
+    </div>
+    <div class="card-body small text-2">
+      {% for st in statuses %}{% if by_status.get(st) %}<span class="tag">{{ st.value }} · {{ by_status[st] }}</span> {% endif %}{% endfor %}
+    </div>
   </section>
 
-  <section class="space-y-3 rounded-2xl bg-white p-4 text-sm shadow-sm">
-    <h2 class="font-semibold">Comptes</h2>
-    <ul class="divide-y">{% for u in users %}
-      <li class="flex items-center gap-2 py-1.5">{{ u.email }} <span class="text-slate-400">({{ u.role.value }}{% if not u.is_active %}, inactif{% endif %})</span>
+  <section class="card">
+    <div class="card-head"><h2>Comptes</h2></div>
+    <ul class="list">{% for u in users %}
+      <li>{{ avatar(u.email, u.id) }}<div><b>{{ u.email }}</b><div class="meta">{{ u.role.value }}{% if not u.is_active %} · inactif{% endif %}</div></div>
         <form method="post" action="/admin/users/{{ u.id }}/reset" class="ml-auto" data-confirm="Générer un nouveau mot de passe ?">
-          <input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="text-xs text-slate-500 hover:text-red-600">Réinitialiser le mot de passe</button></form></li>
+          <input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm">{{ icon('key', 'sm') }} Réinitialiser</button></form></li>
     {% endfor %}</ul>
-    <form method="post" action="/admin/shops/{{ shop.id }}/users" class="flex flex-wrap gap-2">
+    <form method="post" action="/admin/shops/{{ shop.id }}/users" class="card-body row">
       <input type="hidden" name="csrf_token" value="{{ csrf }}">
-      <input name="email" type="email" required placeholder="email" class="flex-1 rounded border px-2 py-1.5">
-      <select name="role" class="rounded border bg-white px-2 py-1.5"><option value="staff">Employé</option><option value="owner">Propriétaire</option></select>
-      <button class="rounded-lg bg-slate-800 px-3 py-1.5 text-white">Ajouter</button>
+      <input class="input" name="email" type="email" required placeholder="email@boutique.tn" aria-label="Email">
+      <select class="select" name="role" aria-label="Rôle"><option value="staff">Employé</option><option value="owner">Propriétaire</option></select>
+      <button class="btn">{{ icon('plus', 'sm') }} Ajouter</button>
     </form>
-    <form method="post" action="/admin/shops/{{ shop.id }}/api-key" data-confirm="L&#39;ancienne clé API cessera de fonctionner. Continuer ?">
+    <form method="post" action="/admin/shops/{{ shop.id }}/api-key" class="form-foot" data-confirm="L&#39;ancienne clé API cessera de fonctionner. Continuer ?">
       <input type="hidden" name="csrf_token" value="{{ csrf }}">
-      <button class="text-xs text-red-600">Régénérer la clé API</button>
+      <button class="btn btn-danger btn-sm">{{ icon('refresh', 'sm') }} Régénérer la clé API</button>
     </form>
   </section>
 </div>

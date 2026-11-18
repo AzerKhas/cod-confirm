@@ -30,8 +30,24 @@ router = APIRouter(prefix="/admin", include_in_schema=False)
 SLUG_RE = re.compile(r"^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$")
 
 
+ADMIN_FLASH: dict[str, tuple[bool, str]] = {
+    "saved": (True, "Enregistré."),
+    "invalid": (False, "Données invalides."),
+    "exists": (False, "Cet email a déjà un compte."),
+}
+
+
 def _ctx(request: Request, user: User, **extra: Any) -> dict[str, Any]:
-    return {"user": user, "csrf": csrf_token(request), "plans": PLANS, "Plan": Plan, **extra}
+    return {
+        "user": user,
+        "csrf": csrf_token(request),
+        "plans": PLANS,
+        "Plan": Plan,
+        "flash": request.query_params.get("msg"),
+        "flash_messages": ADMIN_FLASH,
+        "nav": "shops",
+        **extra,
+    }
 
 
 def _shop(db: Session, shop_id: int) -> Shop:
@@ -71,7 +87,9 @@ def shops_list(
 @router.get("/shops/new", response_class=HTMLResponse)
 def new_shop_page(request: Request, user: User = Depends(require_superadmin)) -> HTMLResponse:
     return templates.TemplateResponse(
-        request, "admin/shop_new.html", _ctx(request, user, error=None, languages=list(Language))
+        request,
+        "admin/shop_new.html",
+        _ctx(request, user, error=None, languages=list(Language), nav="new"),
     )
 
 

@@ -70,7 +70,7 @@ def test_create_shop_shows_secrets_once(client: TestClient, db_session: Session)
         "default_language": "ar", "owner_email": "Nour@Shop.tn"})  # fmt: skip
     assert r.status_code == 200
     api_key = re.search(r"(cc_[A-Za-z0-9_-]+)", r.text)
-    password = re.search(r'select-all rounded bg-slate-100 px-2 py-1">([^<]+)<', r.text)
+    password = re.search(r'data-secret="password">([^<]+)<', r.text)
     assert api_key and password
 
     shop = db_session.scalar(select(Shop).where(Shop.slug == "cosmetiques-nour"))

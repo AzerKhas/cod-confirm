@@ -1,0 +1,42 @@
+{# Shared UI macros (dashboard + admin). #}
+
+{% macro brand(sub='') -%}
+<a href="/dashboard" class="brand">
+  <span class="brand-mark">{{ icon('check') }}</span>
+  <span>COD Confirm{% if sub %}<small>{{ sub }}</small>{% endif %}</span>
+</a>
+{%- endmacro %}
+
+{% macro badge(status, status_labels) -%}
+{% set label = status_labels[status] %}<span class="pill pill-{{ label[1] }}">{{ label[0] }}</span>
+{%- endmacro %}
+
+{% macro risk(customer) -%}
+{% if customer.risk_score >= 50 %}<span class="tag tag-risk" title="{{ customer.total_refused }} refus sur {{ customer.total_orders }} commandes">{{ icon('alert', 'sm') }} {{ customer.total_refused }} refus</span>{% endif %}
+{%- endmacro %}
+
+{% macro avatar(name, seed, cls='') -%}
+<span class="avatar {{ seed|avatar_class }} {{ cls }}" aria-hidden="true">{{ name|initials }}</span>
+{%- endmacro %}
+
+{% macro delta(d, up_is_good=True, suffix='') -%}
+{% if d is none %}<span class="delta flat">—</span>
+{% elif d == 0 %}<span class="delta flat">= 0{{ suffix }}</span>
+{% else %}
+  {% set good = (d > 0) == up_is_good %}
+  <span class="delta {{ 'good' if good else 'bad' }}">{{ icon('up' if d > 0 else 'down', 'sm') }}{{ '+' if d > 0 else '' }}{{ d }}{{ suffix }}</span>
+{% endif %}
+{%- endmacro %}
+
+{% macro toasts(flash, messages) -%}
+{% if flash and flash in messages %}
+  {% set msg = messages[flash] %}
+  <div class="toasts" role="status" aria-live="polite">
+    <div class="toast {{ 'ok' if msg[0] else 'err' }}">{{ icon('check-circle' if msg[0] else 'alert') }}<span>{{ msg[1] }}</span></div>
+  </div>
+{% endif %}
+{%- endmacro %}
+
+{% macro empty(title, text='', ico='inbox') -%}
+<div class="empty"><span class="ico">{{ icon(ico) }}</span><b>{{ title }}</b>{% if text %}<span>{{ text }}</span>{% endif %}</div>
+{%- endmacro %}

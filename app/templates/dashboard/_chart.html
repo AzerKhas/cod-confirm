@@ -1,0 +1,49 @@
+{# Stacked columns: orders per day by outcome. Legend + table view always present. #}
+{% macro daily_chart(chart, title_id='chart-title') -%}
+<div class="chart" role="group" aria-labelledby="{{ title_id }}">
+  <svg viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img" aria-labelledby="{{ title_id }}">
+    {% for value, y in chart.ticks %}
+      <line class="{{ 'baseline' if value == 0 else 'grid-line' }}" x1="{{ chart.plot_left }}" x2="{{ chart.width - 8 }}" y1="{{ '%.1f'|format(y) }}" y2="{{ '%.1f'|format(y) }}"/>
+      <text class="tick" x="{{ chart.plot_left - 8 }}" y="{{ '%.1f'|format(y + 4) }}" text-anchor="end">{{ value }}</text>
+    {% endfor %}
+    {% for col in chart.columns %}
+      <g class="col" tabindex="0" data-tip="{{ col.tip }}" aria-label="{{ col.point.label }} : {{ col.point.total }} commande(s)">
+        <rect class="hit" x="{{ '%.1f'|format(col.x) }}" y="0" width="{{ '%.1f'|format(col.band) }}" height="{{ chart.plot_bottom }}" rx="6"/>
+        {% for s in col.segments %}<path class="s-{{ s.key }}" d="{{ s.path }}"/>{% endfor %}
+        {% if col.show_label %}
+          <text class="tick" x="{{ '%.1f'|format(col.x + col.band / 2) }}" y="{{ chart.height - 8 }}" text-anchor="middle">{{ col.point.day.strftime('%d/%m') }}</text>
+        {% endif %}
+      </g>
+    {% endfor %}
+  </svg>
+</div>
+<div class="legend mt-8">
+  {% for key, label, _ in chart.series %}<span><i class="sw sw-{{ key }}"></i>{{ label }}</span>{% endfor %}
+</div>
+<details class="table-view">
+  <summary>Voir les données</summary>
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Jour</th>{% for key, label, _ in chart.series %}<th class="right">{{ label }}</th>{% endfor %}<th class="right">Total</th></tr></thead>
+    <tbody>
+      {% for col in chart.columns|reverse %}
+        <tr><td>{{ col.point.label }}</td>{% for key, label, _ in chart.series %}<td class="right num">{{ col.point.counts[key] }}</td>{% endfor %}<td class="right num strong">{{ col.point.total }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</details>
+{%- endmacro %}
+
+{% macro share_bar(blocks) -%}
+<div class="share" role="img" aria-label="{% for b in blocks %}{{ b.label }} {{ b.pct }}%{{ ', ' if not loop.last }}{% endfor %}">
+  <svg viewBox="0 0 1000 28" preserveAspectRatio="none" aria-hidden="true">
+    {% for b in blocks if b.w > 0 %}<rect class="s-{{ b.key }}" x="{{ '%.1f'|format(b.x) }}" y="0" width="{{ '%.1f'|format(b.w) }}" height="28" rx="4"/>{% endfor %}
+  </svg>
+</div>
+<div class="share-rows">
+  {% for b in blocks %}
+    <div class="r"><i class="sw sw-{{ b.key }}"></i><span>{{ b.label }}</span><b>{{ b.count }}</b><em>{{ b.pct }} %</em></div>
+  {% endfor %}
+</div>
+{%- endmacro %}

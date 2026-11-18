@@ -1,4 +1,4 @@
-"""Shop-owner dashboard (Jinja2 + HTMX + Tailwind).
+"""Shop-owner dashboard (Jinja2 + HTMX, self-hosted design system in /static/app.css).
 
 Every query is scoped to the logged-in user's shop: an order of another shop is a 404.
 Every POST requires the CSRF token.
@@ -36,6 +36,7 @@ from app.models import Customer, MessageLog, Order, Shop, User
 from app.ratelimit import client_ip, limiter
 from app.schemas import OrderItemIn
 from app.services import messages as m
+from app.services.charts import build_chart, daily_outcomes, share_blocks
 from app.services.order_admin import ADMIN_ACTIONS, edit_order, resend_confirmation, set_status
 from app.services.orders import InvalidTransition, is_risky
 from app.services.privacy import delete_customer
@@ -49,16 +50,27 @@ log = logging.getLogger(__name__)
 S = OrderStatus
 PAGE_SIZE = 25
 
+# (label, pill style) - styles are classes of app.css (.pill-<style>).
 STATUS_LABELS: dict[OrderStatus, tuple[str, str]] = {
-    S.NEW: ("Nouvelle", "bg-slate-100 text-slate-700"),
-    S.AWAITING_CONFIRMATION: ("En attente", "bg-amber-100 text-amber-800"),
-    S.CONFIRMED: ("Confirmée", "bg-emerald-100 text-emerald-800"),
-    S.MODIFY_REQUESTED: ("À modifier", "bg-violet-100 text-violet-800"),
-    S.CANCELLED: ("Annulée", "bg-red-100 text-red-700"),
-    S.NO_ANSWER: ("Sans réponse", "bg-orange-100 text-orange-800"),
-    S.SHIPPED: ("Expédiée", "bg-sky-100 text-sky-800"),
-    S.DELIVERED: ("Livrée", "bg-green-200 text-green-900"),
-    S.REFUSED: ("Refusée", "bg-rose-200 text-rose-900"),
+    S.NEW: ("Nouvelle", "new"),
+    S.AWAITING_CONFIRMATION: ("En attente", "pending"),
+    S.CONFIRMED: ("Confirmée", "good"),
+    S.MODIFY_REQUESTED: ("À modifier", "modify"),
+    S.CANCELLED: ("Annulée", "bad"),
+    S.NO_ANSWER: ("Sans réponse", "warn"),
+    S.SHIPPED: ("Expédiée", "info"),
+    S.DELIVERED: ("Livrée", "done"),
+    S.REFUSED: ("Refusée", "refused"),
+}
+# flash code -> (success?, message), shown as a toast.
+FLASH_MESSAGES: dict[str, tuple[bool, str]] = {
+    "status": (True, "Statut mis à jour."),
+    "edited": (True, "Commande modifiée."),
+    "resent": (True, "Confirmation renvoyée sur WhatsApp."),
+    "not_sent": (False, "Message non envoyé (client STOP, quota ou erreur WhatsApp)."),
+    "invalid": (False, "Action impossible ou données invalides."),
+    "saved": (True, "Réglages enregistrés."),
+    "deleted": (True, "Données du client supprimées."),
 }
 ACTION_LABELS = {
     S.CONFIRMED: "Confirmer (par téléphone)",
@@ -68,9 +80,28 @@ ACTION_LABELS = {
     S.REFUSED: "Refusée (retour)",
 }
 PERIODS = {"today": 0, "7d": 6, "30d": 29}
+CHART_DAYS = {"today": 14, "7d": 7, "30d": 30}
+PERIOD_TEXT = {
+    "today": ("aujourd'hui", "Aujourd'hui", "vs hier"),
+    "7d": ("les 7 derniers jours", "7 jours", "vs période préc."),
+    "30d": ("les 30 derniers jours", "30 jours", "vs période préc."),
+}
 
 
 def _ctx(request: Request, user: User, shop: Shop, **extra: Any) -> dict[str, Any]:
+    from sqlalchemy.orm import object_session
+
+    db = object_session(shop)
+    todo = 0
+    if db is not None:
+        todo = (
+            db.scalar(
+                select(func.count())
+                .select_from(Order)
+                .where(Order.shop_id == shop.id, Order.status == S.MODIFY_REQUESTED)
+            )
+            or 0
+        )
     return {
         "user": user,
         "shop": shop,
@@ -78,6 +109,9 @@ def _ctx(request: Request, user: User, shop: Shop, **extra: Any) -> dict[str, An
         "status_labels": STATUS_LABELS,
         "fmt": m.format_amount,
         "items_summary": m.items_summary,
+        "todo_count": todo,
+        "flash": request.query_params.get("msg"),
+        "flash_messages": FLASH_MESSAGES,
         **extra,
     }
 
@@ -148,6 +182,11 @@ def logout(request: Request) -> RedirectResponse:
 
 
 # ------------------------------------------------------------------- home
+def _pts(now: float, before: float, before_total: int) -> float | None:
+    """Difference in percentage points, None when there is nothing to compare with."""
+    return round(now - before, 1) if before_total else None
+
+
 @router.get("/dashboard", response_class=HTMLResponse)
 def home(
     request: Request,
@@ -158,6 +197,17 @@ def home(
     shop = user_shop(db, user)
     start, end = _period_bounds(shop, period)
     stats = compute_stats(db, shop, start, end)
+    prev = compute_stats(db, shop, start - (end - start), start)
+    deltas = {
+        "total": stats.total - prev.total if prev.total or stats.total else None,
+        "confirmation_rate": _pts(stats.confirmation_rate, prev.confirmation_rate, prev.total),
+        "cancellation_rate": _pts(stats.cancellation_rate, prev.cancellation_rate, prev.total),
+        "no_answer_rate": _pts(stats.no_answer_rate, prev.no_answer_rate, prev.total),
+    }
+    today = datetime.now(UTC).astimezone(_tz(shop)).date()
+    chart = build_chart(daily_outcomes(db, shop, today, CHART_DAYS[period]))
+    shares = share_blocks({"confirmed": stats.confirmed, "cancelled": stats.cancelled,
+                           "no_answer": stats.no_answer, "pending": stats.pending})  # fmt: skip
     to_handle = db.scalars(
         select(Order)
         .where(Order.shop_id == shop.id, Order.status.in_((S.MODIFY_REQUESTED, S.NO_ANSWER)))
@@ -176,7 +226,9 @@ def home(
         request,
         "dashboard/home.html",
         _ctx(request, user, shop, stats=stats, period=period, to_handle=to_handle,
-             today_orders=today_orders, is_risky=is_risky),
+             today_orders=today_orders, is_risky=is_risky, nav="home", deltas=deltas,
+             chart=chart, shares=shares, period_label=PERIOD_TEXT[period][0],
+             period_short=PERIOD_TEXT[period][1], compare_label=PERIOD_TEXT[period][2]),
     )  # fmt: skip
 
 
@@ -215,6 +267,7 @@ def orders_page(
     ctx = _ctx(
         request, user, shop, orders=orders, status_filter=status_filter or "", q=q or "",
         page=page, pages=max(1, -(-total // PAGE_SIZE)), total=total, is_risky=is_risky,
+        nav="todo" if status_filter == S.MODIFY_REQUESTED.value else "orders",
     )  # fmt: skip
     # HTMX requests only need the table.
     name = (
@@ -247,7 +300,7 @@ def order_detail(
              actions=[(a, ACTION_LABELS[a]) for a in ADMIN_ACTIONS[order.status]],
              can_resend=order.status in (S.NEW, S.AWAITING_CONFIRMATION, S.NO_ANSWER),
              editable=order.status not in (S.SHIPPED, S.DELIVERED, S.REFUSED, S.CANCELLED),
-             risky=is_risky(order.customer), Direction=Direction,
+             risky=is_risky(order.customer), Direction=Direction, nav="orders",
              flash=request.query_params.get("msg")),
     )  # fmt: skip
 
@@ -396,7 +449,8 @@ def settings_page(
         request,
         "dashboard/settings.html",
         _ctx(request, user, shop, products=products, languages=list(Language),
-             flash=request.query_params.get("msg"), sa_email=service_account_email()),
+             flash=request.query_params.get("msg"), sa_email=service_account_email(),
+             nav="settings"),
     )  # fmt: skip
 
 

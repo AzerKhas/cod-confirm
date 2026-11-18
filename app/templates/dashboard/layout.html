@@ -1,24 +1,44 @@
 {% extends "base.html" %}
+{% from "_ui.html" import brand, avatar, toasts with context %}
+{% block head %}
+<script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous" defer></script>
+{% endblock %}
 {% block body %}
-<script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
-<div class="min-h-screen" hx-headers='{"X-CSRF-Token": "{{ csrf }}"}'>
-  <header class="border-b bg-white">
-    <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
-      <a href="/dashboard" class="text-lg font-bold text-emerald-700">COD Confirm</a>
-      <span class="text-sm text-slate-500">{{ shop.name }}</span>
-      <nav class="flex gap-3 text-sm">
-        <a href="/dashboard" class="hover:text-emerald-700">Tableau de bord</a>
-        <a href="/dashboard/orders" class="hover:text-emerald-700">Commandes</a>
-        {% if user.role.value == 'owner' %}<a href="/dashboard/settings" class="hover:text-emerald-700">Réglages</a>{% endif %}
-      </nav>
-      <form method="post" action="/logout" class="ml-auto">
+{% set nav = nav|default('') %}
+<div class="app" hx-headers='{"X-CSRF-Token": "{{ csrf }}"}'>
+  <aside class="sidebar" aria-label="Navigation">
+    {{ brand(shop.name) }}
+    <a class="nav-link {{ 'active' if nav == 'home' }}" href="/dashboard">{{ icon('home') }} Tableau de bord</a>
+    <a class="nav-link {{ 'active' if nav == 'orders' }}" href="/dashboard/orders">{{ icon('orders') }} Commandes</a>
+    <a class="nav-link {{ 'active' if nav == 'todo' }}" href="/dashboard/orders?status=MODIFY_REQUESTED">{{ icon('edit') }} À traiter
+      {% if todo_count %}<span class="count">{{ todo_count }}</span>{% endif %}</a>
+    {% if user.role.value == 'owner' %}
+      <div class="nav-section">Boutique</div>
+      <a class="nav-link {{ 'active' if nav == 'settings' }}" href="/dashboard/settings">{{ icon('settings') }} Réglages</a>
+      <a class="nav-link" href="/form/{{ shop.slug }}" target="_blank" rel="noopener">{{ icon('link') }} Formulaire public</a>
+    {% endif %}
+    <div class="sidebar-foot">
+      <button type="button" class="nav-link nav-button" data-theme-toggle>{{ icon('moon') }} Mode sombre / clair</button>
+      <div class="user-chip">
+        {{ avatar(user.email, user.id) }}
+        <span class="who"><b>{{ user.email }}</b><span>{{ 'Propriétaire' if user.role.value == 'owner' else 'Employé' }}</span></span>
+      </div>
+      <form method="post" action="/logout">
         <input type="hidden" name="csrf_token" value="{{ csrf }}">
-        <button class="text-sm text-slate-500 hover:text-red-600">{{ user.email }} · Déconnexion</button>
+        <button class="nav-link nav-button">{{ icon('logout') }} Déconnexion</button>
       </form>
     </div>
-  </header>
-  <main class="mx-auto max-w-6xl px-4 py-6">
-    {% block content %}{% endblock %}
-  </main>
+  </aside>
+  <div class="scrim" data-nav-close></div>
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="btn btn-ghost btn-sm" data-nav-toggle aria-label="Menu">{{ icon('menu') }}</button>
+      <b>{{ shop.name }}</b>
+    </header>
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
 </div>
+{{ toasts(flash|default(None), flash_messages|default({})) }}
 {% endblock %}

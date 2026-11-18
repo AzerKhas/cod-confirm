@@ -1,18 +1,23 @@
-{% from "dashboard/_macros.html" import badge, risk %}
-<div class="overflow-x-auto">
-<table class="w-full text-left text-sm">
-  <thead class="text-xs uppercase text-slate-500">
-    <tr><th class="py-2">#</th><th>Client</th><th>Téléphone</th><th>Ville</th><th>Produits</th><th class="text-right">Total</th><th>Statut</th></tr>
+{% from "_ui.html" import badge, risk, avatar with context %}
+<div class="table-wrap">
+<table class="table">
+  <thead>
+    <tr><th>Commande</th><th>Client</th><th class="hide-sm">Ville</th><th class="hide-sm">Produits</th><th class="right">Total</th><th>Statut</th></tr>
   </thead>
-  <tbody class="divide-y">
+  <tbody>
     {% for o in orders %}
-    <tr class="hover:bg-slate-50">
-      <td class="py-2"><a class="font-medium text-emerald-700 hover:underline" href="/dashboard/orders/{{ o.id }}">{{ o.id }}</a></td>
-      <td>{{ o.customer.name }}{{ risk(o.customer) }}{% if o.customer.opted_out %} <span class="text-xs text-slate-400">(STOP)</span>{% endif %}</td>
-      <td dir="ltr" class="whitespace-nowrap">{{ o.customer.phone_e164 }}</td>
-      <td>{{ o.city }}</td>
-      <td class="max-w-xs truncate">{{ items_summary(o.items) }}</td>
-      <td class="whitespace-nowrap text-right">{{ fmt(o.total) }} DT</td>
+    <tr class="clickable" data-href="/dashboard/orders/{{ o.id }}">
+      <td class="nowrap"><a class="link" href="/dashboard/orders/{{ o.id }}">{{ o.id }}</a><div class="xs muted">{{ o.created_at|ago }}</div></td>
+      <td>
+        <div class="cell-user">
+          {{ avatar(o.customer.name, o.customer_id) }}
+          <div><b>{{ o.customer.name }}</b>{{ risk(o.customer) }}{% if o.customer.opted_out %} <span class="tag tag-stop">STOP</span>{% endif %}
+            <span dir="ltr">{{ o.customer.phone_e164 }}</span></div>
+        </div>
+      </td>
+      <td class="hide-sm">{{ o.city }}</td>
+      <td class="hide-sm"><div class="truncate">{{ items_summary(o['items']) }}</div></td>
+      <td class="right nowrap num strong">{{ fmt(o.total) }} DT</td>
       <td>{{ badge(o.status, status_labels) }}</td>
     </tr>
     {% endfor %}

@@ -4,11 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0f9d6e">
+  <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
   <title>{% block title %}COD Confirm{% endblock %}</title>
-  <script src="https://cdn.tailwindcss.com/3.4.5"></script>
-  <script src="/static/app.js" defer></script>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css?v={{ asset_v }}">
+  <script src="/static/theme.js?v={{ asset_v }}"></script>
+  <script src="/static/app.js?v={{ asset_v }}" defer></script>
+  {% block head %}{% endblock %}
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+<body class="{% block body_class %}{% endblock %}">
   {% block body %}{% endblock %}
 </body>
 </html>

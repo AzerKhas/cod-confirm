@@ -11,13 +11,13 @@ Receive = Callable[[], Awaitable[Message]]
 Send = Callable[[Message], Awaitable[None]]
 ASGIApp = Callable[[Scope, Receive, Send], Awaitable[None]]
 
-# Pages only load scripts from our origin and two pinned CDNs (Tailwind, HTMX).
-# Tailwind's CDN build injects <style> tags, hence 'unsafe-inline' for styles only.
+# Styles and scripts are self-hosted (/static); the only third-party script is HTMX,
+# pinned with Subresource Integrity. No inline script or style anywhere.
 CSP = "; ".join(
     [
         "default-src 'self'",
-        "script-src 'self' https://cdn.tailwindcss.com https://unpkg.com",
-        "style-src 'self' 'unsafe-inline'",
+        "script-src 'self' https://unpkg.com",
+        "style-src 'self'",
         "img-src 'self' data:",
         "font-src 'self'",
         "connect-src 'self'",

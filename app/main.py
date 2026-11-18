@@ -87,6 +87,10 @@ def create_app() -> FastAPI:
     async def _login_required(_request: Request, _exc: LoginRequired) -> RedirectResponse:
         return RedirectResponse("/login", status_code=303)
 
+    @app.get("/favicon.ico", include_in_schema=False)
+    def favicon() -> RedirectResponse:
+        return RedirectResponse("/static/favicon.svg", status_code=308)
+
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:
         return RedirectResponse("/dashboard", status_code=307)

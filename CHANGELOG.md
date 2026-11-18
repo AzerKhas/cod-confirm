@@ -1,5 +1,13 @@
 # Changelog
 
+## Dashboard redesign
+- Self-hosted design system (`app/static/app.css`): no CSS framework or CDN, light + dark mode (OS setting or toggle, remembered), responsive (sidebar becomes a drawer on phones), inline SVG icons (`app/icons.py`), favicon.
+- Stricter CSP: `style-src 'self'` and `script-src 'self'` + HTMX with SRI only — no Tailwind CDN, no inline styles or scripts (tested).
+- Home: 6 KPI tiles with change vs the previous period (confirmation, orders, cancellation, no answer, refusals, money saved), stacked "orders per day by outcome" chart (server-side SVG, validated CVD-safe palette for both themes, hover tooltip, legend, data table view), outcome share bar, "to handle" list with risk badges.
+- Orders: quick status chips, live search, avatars, relative dates, clickable rows. Order page: customer card with call / WhatsApp buttons and risk, WhatsApp-style conversation (day separators, sent / delivered / read ticks), timeline, inline edit.
+- Settings in sections, toasts for every action, new login page, admin pages and public order form redesigned (trust badges, Arabic RTL fixed: the hidden anti-bot field no longer widens RTL pages).
+- 466 tests.
+
 ## Phase 10 – Deployment
 - `docker-compose.prod.yml`: Caddy (automatic HTTPS, Let's Encrypt, body limit, JSON logs) → app (read-only filesystem, no capabilities, no-new-privileges, single process with the scheduler) → PostgreSQL 16 on an internal network (no published port) + nightly encrypted backups; rotated logs.
 - `deploy/Caddyfile` (validated with `caddy validate`), `render.yaml` blueprint, `DEPLOY.md` (VPS step by step, Render, Railway, updates, monitoring, backups off-site, demo).

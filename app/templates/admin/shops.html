@@ -1,34 +1,50 @@
 {% extends "admin/layout.html" %}
+{% from "_ui.html" import avatar, empty with context %}
 {% block title %}Boutiques – Admin{% endblock %}
 {% block content %}
-<section class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
-  {% for label, value in [('Boutiques', totals.shops), ('Actives', totals.active), ('Commandes ' ~ month, totals.orders),
-                          ('Messages ' ~ month, totals.messages), ('MRR', totals.mrr ~ ' DT')] %}
-    <div class="rounded-2xl bg-white p-4 shadow-sm"><p class="text-xs uppercase text-slate-500">{{ label }}</p>
-      <p class="mt-1 text-2xl font-bold">{{ value }}</p></div>
-  {% endfor %}
-</section>
-<div class="overflow-x-auto rounded-2xl bg-white p-4 shadow-sm">
-<table class="w-full text-left text-sm">
-  <thead class="text-xs uppercase text-slate-500"><tr><th class="py-2">#</th><th>Boutique</th><th>Plan</th><th>Usage {{ month }}</th><th>WhatsApp</th><th>Statut</th><th>Payé jusqu'au</th></tr></thead>
-  <tbody class="divide-y">
-  {% for s in shops %}
-    {% set u = usage.get(s.id) %}
-    {% set used = u.orders if u else 0 %}
-    {% set quota = plans[Plan(s.plan)].monthly_orders %}
-    <tr class="hover:bg-slate-50">
-      <td class="py-2">{{ s.id }}</td>
-      <td><a class="font-medium text-emerald-700 hover:underline" href="/admin/shops/{{ s.id }}">{{ s.name }}</a> <span class="text-slate-400">/{{ s.slug }}</span></td>
-      <td>{{ plans[Plan(s.plan)].label }}</td>
-      <td class="{{ 'font-bold text-red-600' if used > hard_quota(s.plan) else ('text-amber-600' if used > quota else '') }}">{{ used }} / {{ quota }} cmd · {{ u.messages_sent if u else 0 }} msg</td>
-      <td>{{ '✅' if s.whatsapp_phone_number_id and s.access_token_encrypted else '—' }}</td>
-      <td>{{ 'Active' if s.is_active else 'Suspendue' }}</td>
-      <td>{{ s.paid_until or '—' }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="7" class="py-4 text-slate-500">Aucune boutique. <a class="text-emerald-700" href="/admin/shops/new">Créer la première</a>.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="page-head">
+  <div><h1>Boutiques</h1><p class="sub">Abonnements, usage du mois {{ month }} et connexion WhatsApp.</p></div>
+  <div class="actions"><a class="btn btn-primary" href="/admin/shops/new">{{ icon('plus') }} Nouvelle boutique</a></div>
 </div>
+
+<section class="grid grid-kpi four">
+  <div class="card kpi hero"><span class="label"><span class="ico">{{ icon('wallet') }}</span>MRR</span><span class="value">{{ totals.mrr }}<small>DT</small></span><span class="foot">{{ totals.mrr }} DT / mois</span></div>
+  <div class="card kpi"><span class="label"><span class="ico brand">{{ icon('store') }}</span>Boutiques</span><span class="value">{{ totals.shops }}</span><span class="foot">{{ totals.active }} active(s)</span></div>
+  <div class="card kpi"><span class="label"><span class="ico">{{ icon('package') }}</span>Commandes</span><span class="value">{{ totals.orders }}</span><span class="foot">ce mois</span></div>
+  <div class="card kpi"><span class="label"><span class="ico">{{ icon('chat') }}</span>Messages</span><span class="value">{{ totals.messages }}</span><span class="foot">envoyés ce mois</span></div>
+</section>
+
+<section class="card mt-16">
+  {% if shops %}
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Boutique</th><th>Plan</th><th>Usage {{ month }}</th><th>WhatsApp</th><th>Statut</th><th>Payé jusqu'au</th></tr></thead>
+    <tbody>
+    {% for s in shops %}
+      {% set u = usage.get(s.id) %}
+      {% set used = u.orders if u else 0 %}
+      {% set quota = plans[Plan(s.plan)].monthly_orders %}
+      {% set ratio = [used / quota, 1]|min if quota else 0 %}
+      <tr class="clickable" data-href="/admin/shops/{{ s.id }}">
+        <td><div class="cell-user">{{ avatar(s.name, s.id) }}<div><a class="link" href="/admin/shops/{{ s.id }}">{{ s.name }}</a><span>/{{ s.slug }}</span></div></div></td>
+        <td><span class="tag tag-brand">{{ plans[Plan(s.plan)].label }}</span></td>
+        <td>
+          <div class="small num {{ 'strong' if used > quota }}">{{ used }} / {{ quota }} cmd · {{ u.messages_sent if u else 0 }} msg</div>
+          <div class="meter mt-8"><svg viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true">
+            <rect class="track" width="100" height="8" rx="4"/>
+            {% if ratio > 0 %}<rect class="fill {{ 'over' if used > hard_quota(s.plan) }}" width="{{ '%.1f'|format(ratio * 100) }}" height="8" rx="4"/>{% endif %}
+          </svg></div>
+        </td>
+        <td>{% if s.whatsapp_phone_number_id and s.access_token_encrypted %}<span class="pill pill-good">Connecté</span>{% else %}<span class="pill pill-new">Non connecté</span>{% endif %}</td>
+        <td>{% if s.is_active %}<span class="pill pill-good">Active</span>{% else %}<span class="pill pill-bad">Suspendue</span>{% endif %}</td>
+        <td class="nowrap">{{ s.paid_until or '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+    {{ empty('Aucune boutique', 'Créez la première boutique pour commencer.', 'store') }}
+  {% endif %}
+</section>
 {% endblock %}

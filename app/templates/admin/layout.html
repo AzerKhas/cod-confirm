@@ -1,19 +1,29 @@
 {% extends "base.html" %}
+{% from "_ui.html" import avatar, toasts with context %}
 {% block body %}
-<div class="min-h-screen">
-  <header class="border-b bg-slate-900 text-white">
-    <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-      <a href="/admin" class="text-lg font-bold">COD Confirm · Admin</a>
-      <nav class="flex gap-3 text-sm text-slate-300">
-        <a href="/admin" class="hover:text-white">Boutiques</a>
-        <a href="/admin/shops/new" class="hover:text-white">+ Nouvelle boutique</a>
-      </nav>
-      <form method="post" action="/logout" class="ml-auto">
+{% set nav = nav|default('') %}
+<div class="app admin">
+  <aside class="sidebar" aria-label="Navigation">
+    <a href="/admin" class="brand"><span class="brand-mark">{{ icon('check') }}</span><span>COD Confirm<small>Administration</small></span></a>
+    <a class="nav-link {{ 'active' if nav == 'shops' }}" href="/admin">{{ icon('store') }} Boutiques</a>
+    <a class="nav-link {{ 'active' if nav == 'new' }}" href="/admin/shops/new">{{ icon('plus') }} Nouvelle boutique</a>
+    <div class="sidebar-foot">
+      <button type="button" class="nav-link nav-button" data-theme-toggle>{{ icon('moon') }} Mode sombre / clair</button>
+      <div class="user-chip">{{ avatar(user.email, user.id) }}<span class="who"><b>{{ user.email }}</b><span>Super-admin</span></span></div>
+      <form method="post" action="/logout">
         <input type="hidden" name="csrf_token" value="{{ csrf }}">
-        <button class="text-sm text-slate-300 hover:text-white">{{ user.email }} · Déconnexion</button>
+        <button class="nav-link nav-button">{{ icon('logout') }} Déconnexion</button>
       </form>
     </div>
-  </header>
-  <main class="mx-auto max-w-6xl px-4 py-6">{% block content %}{% endblock %}</main>
+  </aside>
+  <div class="scrim"></div>
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="btn btn-ghost btn-sm" data-nav-toggle aria-label="Menu">{{ icon('menu') }}</button>
+      <b>Administration</b>
+    </header>
+    <main class="content">{% block content %}{% endblock %}</main>
+  </div>
 </div>
+{{ toasts(flash|default(None), flash_messages|default({})) }}
 {% endblock %}

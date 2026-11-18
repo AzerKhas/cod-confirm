@@ -1,25 +1,37 @@
 {% extends "dashboard/layout.html" %}
 {% block title %}Commandes – {{ shop.name }}{% endblock %}
 {% block content %}
-<div class="mb-4 flex flex-wrap items-center gap-2">
-  <h1 class="mr-auto text-xl font-bold">Commandes</h1>
-  <a id="export" href="/dashboard/export.csv?status={{ status_filter }}&q={{ q|urlencode }}"
-     class="rounded-lg bg-white px-3 py-1.5 text-sm shadow-sm hover:bg-slate-50">⬇ Export CSV</a>
+<div class="page-head">
+  <div>
+    <h1>Commandes</h1>
+    <p class="sub">Toutes les commandes reçues, leur statut et la conversation WhatsApp.</p>
+  </div>
+  <div class="actions">
+    <a id="export" class="btn" href="/dashboard/export.csv?status={{ status_filter }}&q={{ q|urlencode }}">{{ icon('download') }} Export CSV</a>
+  </div>
 </div>
 
-<form class="mb-4 flex flex-wrap gap-2" hx-get="/dashboard/orders" hx-target="#orders-table"
-      hx-trigger="change, keyup changed delay:400ms from:#q" hx-push-url="true">
-  <input id="q" name="q" value="{{ q }}" placeholder="Nom, téléphone, ville ou n°" maxlength="60"
-         class="w-64 rounded-lg border border-slate-300 px-3 py-1.5 text-sm">
-  <select name="status" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm">
-    <option value="">Tous les statuts</option>
-    {% for st, label in status_labels.items() %}
-      <option value="{{ st.value }}" {% if status_filter == st.value %}selected{% endif %}>{{ label[0] }}</option>
-    {% endfor %}
-  </select>
-</form>
+<nav class="chips" aria-label="Filtres rapides">
+  {% for value, label in [('', 'Toutes'), ('AWAITING_CONFIRMATION', 'En attente'), ('MODIFY_REQUESTED', 'À modifier'),
+                          ('NO_ANSWER', 'Sans réponse'), ('CONFIRMED', 'Confirmées'), ('SHIPPED', 'Expédiées'), ('CANCELLED', 'Annulées')] %}
+    <a href="/dashboard/orders{{ '?status=' ~ value if value }}" class="chip {{ 'on' if status_filter == value }}">{{ label }}</a>
+  {% endfor %}
+</nav>
 
-<div id="orders-table" class="rounded-2xl bg-white p-4 shadow-sm">
+<section class="card">
+  <form class="card-head filters" hx-get="/dashboard/orders" hx-target="#orders-table" hx-select="#orders-table" hx-swap="outerHTML"
+        hx-trigger="change, keyup changed delay:400ms from:#q" hx-push-url="true" role="search">
+    <div class="input-icon">
+      {{ icon('search') }}
+      <input id="q" name="q" value="{{ q }}" class="input" placeholder="Nom, téléphone, ville ou n°" maxlength="60" aria-label="Rechercher">
+    </div>
+    <select name="status" class="select" aria-label="Statut">
+      <option value="">Tous les statuts</option>
+      {% for st, label in status_labels.items() %}
+        <option value="{{ st.value }}" {% if status_filter == st.value %}selected{% endif %}>{{ label[0] }}</option>
+      {% endfor %}
+    </select>
+  </form>
   {% include "dashboard/_orders_table.html" %}
-</div>
+</section>
 {% endblock %}

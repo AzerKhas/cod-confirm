@@ -1,19 +1,30 @@
 {% extends "admin/layout.html" %}
 {% block title %}Nouvelle boutique – Admin{% endblock %}
 {% block content %}
-<h1 class="mb-4 text-xl font-bold">Nouvelle boutique</h1>
-{% if error %}<div class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ error }}</div>{% endif %}
-<form method="post" action="/admin/shops/new" class="grid max-w-2xl gap-4 rounded-2xl bg-white p-5 text-sm shadow-sm md:grid-cols-2">
+<div class="page-head">
+  <div><a href="/admin" class="crumb">{{ icon('arrow-left', 'sm') }} Boutiques</a><h1>Nouvelle boutique</h1>
+    <p class="sub">Crée la boutique et le compte du propriétaire. La clé API et le mot de passe s'affichent une seule fois.</p></div>
+</div>
+{% if error %}<div class="alert alert-danger" role="alert">{{ icon('alert') }}<span>{{ error }}</span></div>{% endif %}
+<form method="post" action="/admin/shops/new" class="card mt-16">
   <input type="hidden" name="csrf_token" value="{{ csrf }}">
-  <label>Nom de la boutique<input name="name" required maxlength="120" class="mt-1 w-full rounded border px-2 py-1.5"></label>
-  <label>Slug (URL du formulaire)<input name="slug" required maxlength="60" pattern="[a-z0-9-]+" placeholder="boutique-yasmine" class="mt-1 w-full rounded border px-2 py-1.5"></label>
-  <label>Plan<select name="plan" class="mt-1 w-full rounded border bg-white px-2 py-1.5">
-    {% for p, l in plans.items() %}<option value="{{ p.value }}">{{ l.label }} – {{ l.monthly_orders }} cmd/mois – {{ l.price_tnd }} DT</option>{% endfor %}
-  </select></label>
-  <label>Langue des messages<select name="default_language" class="mt-1 w-full rounded border bg-white px-2 py-1.5">
-    {% for l in languages %}<option value="{{ l.value }}">{{ {'darija': 'Darija (latin)', 'ar': 'Arabe', 'fr': 'Français'}[l.value] }}</option>{% endfor %}
-  </select></label>
-  <label class="md:col-span-2">Email du propriétaire<input name="owner_email" type="email" required maxlength="254" class="mt-1 w-full rounded border px-2 py-1.5"></label>
-  <button class="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white md:w-48">Créer</button>
+  <div class="form-section">
+    <div class="intro"><h3>Boutique</h3><p>Le slug sert à l'URL du formulaire public : /form/&lt;slug&gt;.</p></div>
+    <div class="form-grid">
+      <div class="field"><label for="name">Nom de la boutique</label><input class="input" id="name" name="name" required maxlength="120"></div>
+      <div class="field"><label for="slug">Slug</label><input class="input mono" id="slug" name="slug" required maxlength="60" pattern="[a-z0-9-]+" placeholder="boutique-yasmine"></div>
+      <div class="field"><label for="plan">Plan</label><select class="select" id="plan" name="plan">
+        {% for p, l in plans.items() %}<option value="{{ p.value }}">{{ l.label }} – {{ l.monthly_orders }} cmd/mois – {{ l.price_tnd }} DT</option>{% endfor %}
+      </select></div>
+      <div class="field"><label for="lang">Langue des messages</label><select class="select" id="lang" name="default_language">
+        {% for l in languages %}<option value="{{ l.value }}">{{ {'darija': 'Darija (latin)', 'ar': 'Arabe', 'fr': 'Français'}[l.value] }}</option>{% endfor %}
+      </select></div>
+    </div>
+  </div>
+  <div class="form-section">
+    <div class="intro"><h3>Propriétaire</h3><p>Il pourra se connecter à son tableau de bord.</p></div>
+    <div class="field"><label for="owner">Email</label><input class="input" id="owner" name="owner_email" type="email" required maxlength="254"></div>
+  </div>
+  <div class="form-foot"><button class="btn btn-primary">{{ icon('plus') }} Créer la boutique</button></div>
 </form>
 {% endblock %}
