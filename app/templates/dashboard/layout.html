@@ -8,6 +8,11 @@
 <div class="app" hx-headers='{"X-CSRF-Token": "{{ csrf }}"}'>
   <aside class="sidebar" aria-label="Navigation">
     {{ brand(shop.name) }}
+    {% if user.role.value == 'owner' and setup and setup[0] < setup[1] %}
+    <a class="nav-link {{ 'active' if nav == 'onboarding' }}" href="/dashboard/onboarding">{{ icon('bolt') }} Démarrage<span class="count count-brand">{{ setup[0] }}/{{ setup[1] }}</span></a>
+    {% elif user.role.value == 'owner' %}
+    <a class="nav-link {{ 'active' if nav == 'onboarding' }}" href="/dashboard/onboarding">{{ icon('bolt') }} Démarrage</a>
+    {% endif %}
     <a class="nav-link {{ 'active' if nav == 'home' }}" href="/dashboard">{{ icon('home') }} Tableau de bord</a>
     <a class="nav-link {{ 'active' if nav == 'orders' }}" href="/dashboard/orders">{{ icon('orders') }} Commandes</a>
     <a class="nav-link {{ 'active' if nav == 'todo' }}" href="/dashboard/orders?status=MODIFY_REQUESTED">{{ icon('edit') }} À traiter

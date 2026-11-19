@@ -1,0 +1,118 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Démarrage – {{ shop.name }}{% endblock %}
+{% macro step_head(s, n) -%}
+<div class="step-head">
+  <span class="step-num {{ 'done' if s.done }}">{% if s.done %}{{ icon('check', 'sm') }}{% else %}{{ n }}{% endif %}</span>
+  <div><h2>{{ s.title }}{% if s.optional %} <span class="tag">optionnel</span>{% endif %}</h2><p class="small text-2">{{ s.text }}</p></div>
+</div>
+{%- endmacro %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Bienvenue sur COD Confirm 🎉</h1><p class="sub">Quelques minutes pour être prêt à confirmer vos commandes sur WhatsApp.</p></div>
+  <div class="actions"><span class="strong">{{ done }} / {{ total }} étapes</span></div>
+</div>
+<div class="meter mb-16"><svg viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true">
+  <rect class="track" width="100" height="8" rx="4"/>
+  {% if done %}<rect class="fill" width="{{ '%.1f'|format(100 * done / total) }}" height="8" rx="4"/>{% endif %}
+</svg></div>
+
+<div class="stack steps">
+  {% set s = steps.profile %}
+  <section class="card step {{ 'is-done' if s.done }}" id="profile">
+    <div class="card-body">{{ step_head(s, 1) }}
+      <div class="step-body"><a class="btn" href="/dashboard/settings">{{ icon('settings', 'sm') }} Ouvrir les réglages</a>
+        <span class="small muted">Ajoutez au moins un produit (Nom = prix) pour votre formulaire.</span></div>
+    </div>
+  </section>
+
+  {% set s = steps.whatsapp %}
+  <section class="card step {{ 'is-done' if s.done }}" id="whatsapp">
+    <div class="card-body">{{ step_head(s, 2) }}
+      <div class="step-body stack">
+        <ol class="howto small text-2">
+          <li>Ouvrez <b>developers.facebook.com</b> → votre app → <b>WhatsApp</b> → <i>API Setup</i>.</li>
+          <li>Copiez le <b>Phone number ID</b> et le <b>WhatsApp Business Account ID</b>.</li>
+          <li>Créez un <b>token permanent</b> (Business settings → System users) avec <code>whatsapp_business_messaging</code>.</li>
+        </ol>
+        <form method="post" action="/dashboard/onboarding/whatsapp" class="form-grid">
+          <input type="hidden" name="csrf_token" value="{{ csrf }}">
+          <div class="field"><label for="pnid">Phone number ID</label><input class="input mono" id="pnid" name="phone_number_id" value="{{ shop.whatsapp_phone_number_id or '' }}" inputmode="numeric" required></div>
+          <div class="field"><label for="waba">WhatsApp Business Account ID</label><input class="input mono" id="waba" name="waba_id" value="{{ shop.waba_id or '' }}" inputmode="numeric"></div>
+          <div class="field span-2"><label for="tok">Token permanent</label><input class="input mono" id="tok" name="access_token" type="password" autocomplete="off"
+            placeholder="{{ 'Enregistré (chiffré) – laisser vide pour le garder' if shop.access_token_encrypted else 'EAAG…' }}">
+            <span class="hint">Stocké chiffré, jamais réaffiché.</span></div>
+          <div class="span-2"><button class="btn btn-primary">{{ icon('check') }} Enregistrer</button></div>
+        </form>
+        {% if s.done %}
+        <form method="post" action="/dashboard/onboarding/whatsapp/test" class="row">
+          <input type="hidden" name="csrf_token" value="{{ csrf }}">
+          <input class="input" name="phone" placeholder="Votre numéro, ex. 98 123 456" inputmode="tel" required aria-label="Votre numéro">
+          <button class="btn">{{ icon('chat', 'sm') }} M'envoyer un message test</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  {% set s = steps.orders %}
+  <section class="card step {{ 'is-done' if s.done }}" id="orders">
+    <div class="card-body">{{ step_head(s, 3) }}
+      <div class="step-body grid grid-2">
+        <div class="option">
+          <h3>{{ icon('link', 'sm') }} Facebook / Instagram</h3>
+          <p class="small text-2">Mettez ce lien dans votre bio, vos posts et vos pubs.</p>
+          <code class="copy">{{ base }}/form/{{ shop.slug }}</code>
+          <a class="link small" href="/form/{{ shop.slug }}" target="_blank" rel="noopener">Voir le formulaire →</a>
+        </div>
+        <div class="option">
+          <h3>{{ icon('store', 'sm') }} Shopify / WooCommerce</h3>
+          <p class="small text-2">Créez un webhook « création de commande » vers :</p>
+          <code class="copy">{{ base }}/webhooks/shopify/{{ shop.slug }}</code>
+          <code class="copy">{{ base }}/webhooks/woocommerce/{{ shop.slug }}</code>
+          <form method="post" action="/dashboard/integrations" class="stack mt-8">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+            <input class="input mono" name="shopify_secret" type="password" autocomplete="off" aria-label="Secret Shopify"
+                   placeholder="{{ 'Secret Shopify enregistré' if shop.shopify_webhook_secret else 'Secret de signature Shopify' }}">
+            <input class="input mono" name="woocommerce_secret" type="password" autocomplete="off" aria-label="Secret WooCommerce"
+                   placeholder="{{ 'Secret WooCommerce enregistré' if shop.woocommerce_webhook_secret else 'Secret WooCommerce' }}">
+            <button class="btn btn-sm">Enregistrer</button>
+          </form>
+        </div>
+        <div class="option span-2">
+          <h3>{{ icon('key', 'sm') }} API (site sur mesure, autre plateforme)</h3>
+          <p class="small text-2"><code>POST {{ base }}/api/orders</code> avec l'en-tête <code>X-API-Key</code>. Clé actuelle : <code>{{ shop.api_key_prefix }}…</code></p>
+          <form method="post" action="/dashboard/api-key" data-confirm="Générer une nouvelle clé ? L'ancienne cessera de fonctionner.">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm">{{ icon('refresh', 'sm') }} Générer une clé API</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% set s = steps.test %}
+  <section class="card step {{ 'is-done' if s.done }}" id="test">
+    <div class="card-body">{{ step_head(s, 4) }}
+      <form method="post" action="/dashboard/onboarding/test-order" class="step-body row">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <input class="input" name="phone" placeholder="Votre numéro WhatsApp" inputmode="tel" required aria-label="Votre numéro WhatsApp">
+        <button class="btn btn-primary">{{ icon('package', 'sm') }} Créer une commande test</button>
+      </form>
+    </div>
+  </section>
+
+  {% set s = steps.alerts %}
+  <section class="card step {{ 'is-done' if s.done }}" id="alerts">
+    <div class="card-body">{{ step_head(s, 5) }}
+      <div class="step-body"><a class="btn" href="/dashboard/settings">{{ icon('settings', 'sm') }} Ajouter mon Telegram</a></div>
+    </div>
+  </section>
+
+  {% set s = steps.plan %}
+  <section class="card step {{ 'is-done' if s.done }}" id="plan">
+    <div class="card-body">{{ step_head(s, 6) }}
+      <div class="step-body"><a class="btn" href="/dashboard/billing">{{ icon('wallet', 'sm') }} Voir les plans</a>
+        {% if shop.paid_until %}<span class="small muted">Essai jusqu'au {{ shop.paid_until.strftime('%d/%m/%Y') }}.</span>{% endif %}</div>
+    </div>
+  </section>
+</div>
+{% endblock %}

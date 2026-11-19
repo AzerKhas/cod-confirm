@@ -1,0 +1,11 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}Clé API – {{ shop.name }}{% endblock %}
+{% block content %}
+<div class="page-head"><div><a href="/dashboard/onboarding#orders" class="crumb">{{ icon('arrow-left', 'sm') }} Démarrage</a><h1>Votre nouvelle clé API</h1></div></div>
+<section class="card">
+  <div class="card-body stack">
+    <div class="alert alert-warn">{{ icon('alert') }}<span>Copiez-la maintenant : elle ne sera plus jamais affichée. L'ancienne clé ne fonctionne plus.</span></div>
+    <div class="secret"><span class="label-text">{{ icon('key', 'sm') }} X-API-Key</span><code data-secret="api_key">{{ api_key }}</code></div>
+  </div>
+</section>
+{% endblock %}

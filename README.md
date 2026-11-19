@@ -73,6 +73,14 @@ python -m scripts.create_shop --name "Skmei Tunisie" --slug skmei-tn `
 
 Prints the shop's intake API key **once** (only its hash is stored).
 
+## Sign-up & getting started
+
+Sellers sign up themselves at `/signup` (free trial, no card) and land on `/dashboard/onboarding`,
+a checklist that walks them through: products, WhatsApp connection (+ test message), order
+sources (form link, Shopify / WooCommerce webhooks, API key), a test order to their own phone,
+Telegram alerts and choosing a plan. Turn sign-ups off with `SIGNUP_ENABLED=false`; set
+`TERMS_URL` to require accepting your terms.
+
 ## Dashboard
 
 ```powershell

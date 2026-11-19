@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Créer mon compte – COD Confirm{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block body %}
+<div class="auth">
+  <aside class="auth-aside">
+    <div class="brand"><span class="brand-mark">{{ icon('check') }}</span><span>COD Confirm<small>Confirmation WhatsApp des commandes</small></span></div>
+    <h2>{{ trial_days }} jours gratuits. Sans carte bancaire.</h2>
+    <p class="lead">Créez votre espace en une minute : vos clients reçoivent un WhatsApp dans leur langue et confirment en un clic.</p>
+    <ul>
+      <li>{{ icon('check-circle') }} Moins de colis refusés, moins de frais de retour</li>
+      <li>{{ icon('chat') }} Darija, arabe, français et anglais</li>
+      <li>{{ icon('store') }} Formulaire Facebook / Instagram, Shopify, WooCommerce</li>
+    </ul>
+  </aside>
+  <main class="auth-main">
+    <form method="post" action="/signup" class="auth-card" novalidate>
+      <div>
+        <h1>Créer mon compte</h1>
+        <p class="text-2 mt-8">Déjà inscrit ? <a class="link" href="/login">Se connecter</a></p>
+      </div>
+      {% if errors.get('_form') %}<div class="alert alert-danger" role="alert">{{ icon('alert') }}<span>{{ errors['_form'] }}</span></div>{% endif %}
+      <input type="hidden" name="ft" value="{{ token }}">
+      <div class="honeypot" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+      <div class="field">
+        <label for="shop_name">Nom de votre boutique</label>
+        <input class="input" id="shop_name" name="shop_name" required maxlength="120" value="{{ values.get('shop_name', '') }}" placeholder="Ex. Boutique Yasmine" autofocus>
+        {{ err('shop_name') }}
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input class="input" id="email" name="email" type="email" required maxlength="254" autocomplete="email" value="{{ values.get('email', '') }}">
+        {{ err('email') }}
+      </div>
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input class="input" id="password" name="password" type="password" required minlength="10" maxlength="200" autocomplete="new-password">
+        <span class="hint">10 caractères minimum.</span>
+        {{ err('password') }}
+      </div>
+      <div class="field">
+        <label for="language">Langue des messages à vos clients</label>
+        <select class="select" id="language" name="language">
+          {% for l, label in languages %}<option value="{{ l.value }}" {% if values.get('language') == l.value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <span class="hint">Le bot répond ensuite dans la langue de chaque client.</span>
+      </div>
+      {% if terms_url %}
+        <label class="check"><input type="checkbox" name="terms" {% if values.get('terms') %}checked{% endif %}> J'accepte les <a class="link" href="{{ terms_url }}" target="_blank" rel="noopener">conditions d'utilisation</a></label>
+        {{ err('terms') }}
+      {% endif %}
+      <button class="btn btn-primary btn-lg btn-block">Commencer l'essai gratuit {{ icon('arrow-right') }}</button>
+    </form>
+  </main>
+</div>
+{% endblock %}

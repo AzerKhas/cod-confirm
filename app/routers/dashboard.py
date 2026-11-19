@@ -38,6 +38,7 @@ from app.schemas import OrderItemIn
 from app.services import messages as m
 from app.services.billing import billing_state
 from app.services.charts import build_chart, daily_outcomes, share_blocks
+from app.services.onboarding import onboarding_steps, progress
 from app.services.order_admin import ADMIN_ACTIONS, edit_order, resend_confirmation, set_status
 from app.services.orders import InvalidTransition, is_risky
 from app.services.privacy import delete_customer
@@ -112,6 +113,7 @@ def _ctx(request: Request, user: User, shop: Shop, **extra: Any) -> dict[str, An
         "items_summary": m.items_summary,
         "todo_count": todo,
         "billing": billing_state(shop),
+        "setup": progress(onboarding_steps(db, shop)) if db is not None else None,
         "flash": request.query_params.get("msg"),
         "flash_messages": FLASH_MESSAGES,
         **extra,

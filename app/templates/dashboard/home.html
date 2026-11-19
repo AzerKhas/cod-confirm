@@ -17,6 +17,13 @@
   </div>
 </div>
 
+{% if user.role.value == 'owner' and setup and setup[0] < setup[1] %}
+<a class="card setup-banner" href="/dashboard/onboarding">
+  <span class="ico">{{ icon('bolt') }}</span>
+  <div><b>Terminez la configuration ({{ setup[0] }}/{{ setup[1] }})</b><p class="small text-2">Connectez WhatsApp et faites une commande test pour être prêt.</p></div>
+  <span class="btn btn-primary btn-sm ml-auto">Continuer {{ icon('arrow-right', 'sm') }}</span>
+</a>
+{% endif %}
 <section class="grid grid-kpi" aria-label="Indicateurs">
   <div class="card kpi hero">
     <span class="label"><span class="ico">{{ icon('check-circle') }}</span>Confirmation</span>

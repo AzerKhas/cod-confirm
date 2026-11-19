@@ -1,5 +1,11 @@
 # Changelog
 
+## Self-service sign-up + getting-started guide
+- `/signup`: a seller creates their shop and owner account in one minute and starts the free trial (unique slug from the shop name, language of messages, optional terms checkbox via `TERMS_URL`, `SIGNUP_ENABLED` switch). Protected by a signed expiring form token, honeypot and 5 sign-ups / hour / IP.
+- `/dashboard/onboarding`: checklist with progress (profile & products, WhatsApp, receiving orders, test order, Telegram, plan), shown in the menu and as a banner until done.
+- Self-service setup for owners: connect WhatsApp (Phone number ID, WABA, permanent token stored encrypted) + test message with Meta's `hello_world` template, Shopify / WooCommerce webhook URLs and secrets, new API key shown once, test order sent to the owner's own phone.
+- Migration `0010` (terms acceptance). 562 tests.
+
 ## English + multilingual form
 - New language **English**: order form, WhatsApp templates (`cod_*_en`, 12 templates in total), bot replies, buttons, settings.
 - Public order form opens in **French** with a switcher Français / العربية / English / Tounsi; the language chosen is stored on the customer and used for all WhatsApp messages.

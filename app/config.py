@@ -68,6 +68,10 @@ class Settings(BaseSettings):
     trial_days: int = Field(default=14, ge=0, le=90)
     billing_grace_days: int = Field(default=3, ge=0, le=30)
 
+    # Self-service sign-up at /signup (free trial). TERMS_URL adds a mandatory checkbox.
+    signup_enabled: bool = True
+    terms_url: str = ""
+
     # Google Sheets sync: path to the service-account JSON key (optional).
     google_service_account_file: str = ""
 

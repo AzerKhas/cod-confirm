@@ -270,6 +270,8 @@ class User(Base):
     # Bumped on password change / logout-everywhere: invalidates existing sessions.
     session_version: Mapped[int] = mapped_column(Integer, default=1)
     last_login_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    # When the terms of service were accepted at sign-up (None: account created by the operator).
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
     shop: Mapped[Shop | None] = relationship()
