@@ -17,6 +17,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    LargeBinary,
     Numeric,
     String,
     Text,
@@ -108,6 +109,13 @@ class Shop(Base):
 
     # Google Sheets sync (optional): id of the sheet shared with the service account.
     google_sheet_id: Mapped[str | None] = mapped_column(String(100))
+
+    # Public order form branding: accent colour (#rrggbb) and logo (stored in the DB because
+    # the production container is read-only; deferred so it is only loaded when served).
+    brand_color: Mapped[str | None] = mapped_column(String(7))
+    logo: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True)
+    logo_mime: Mapped[str | None] = mapped_column(String(20))
+    logo_updated_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
 
     # Delivery settings: default carrier, public tracking URL pattern ("...{tracking}..."),
     # and the secret that signs status updates pushed to /webhooks/carrier/<slug>.

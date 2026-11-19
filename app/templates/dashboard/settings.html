@@ -83,4 +83,28 @@
     <button class="btn btn-primary">{{ icon('check') }} Enregistrer</button>
   </div>
 </form>
+
+<form method="post" action="/dashboard/branding" enctype="multipart/form-data" class="card mt-16" id="branding">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <div class="form-section">
+    <div class="intro"><h3>Apparence du formulaire</h3><p>Votre couleur et votre logo sur le formulaire de commande : vos clients reconnaissent votre marque.</p></div>
+    <div class="stack">
+      <div class="brand-row">
+        <div class="field"><label for="bc">Couleur principale</label>
+          <div class="row"><input type="color" id="bc" name="brand_color" value="{{ shop.brand_color or '#1660b0' }}" class="color-input">
+            <label class="check small"><input type="checkbox" name="reset_color"> Couleur par défaut</label></div>
+          <span class="hint">Le texte des boutons s'adapte automatiquement pour rester lisible.</span></div>
+        <div class="field"><label for="logo">Logo</label>
+          <div class="row">
+            {% if shop.logo_mime %}<img class="logo-thumb" src="/form/{{ shop.slug }}/logo?v={{ shop.logo_updated_at.timestamp()|int if shop.logo_updated_at else 0 }}" alt="Logo actuel" width="48" height="48">{% endif %}
+            <input class="input" type="file" id="logo" name="logo" accept="image/png,image/jpeg,image/webp">
+          </div>
+          <span class="hint">PNG, JPEG ou WebP, carré de préférence, 300 Ko maximum.</span>
+          {% if shop.logo_mime %}<label class="check small"><input type="checkbox" name="remove_logo"> Retirer le logo</label>{% endif %}</div>
+      </div>
+      <a class="link small" href="/form/{{ shop.slug }}" target="_blank" rel="noopener">{{ icon('link', 'sm') }} Voir mon formulaire</a>
+    </div>
+  </div>
+  <div class="form-foot"><button class="btn btn-primary">{{ icon('check') }} Enregistrer</button></div>
+</form>
 {% endblock %}

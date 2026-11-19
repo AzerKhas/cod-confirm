@@ -74,6 +74,10 @@ FLASH_MESSAGES: dict[str, tuple[bool, str]] = {
     "invalid": (False, "Action impossible ou données invalides."),
     "saved": (True, "Réglages enregistrés."),
     "deleted": (True, "Données du client supprimées."),
+    "branding_invalid": (
+        False,
+        "Logo refusé : PNG, JPEG ou WebP de 300 Ko maximum, couleur au format #RRGGBB.",
+    ),
 }
 ACTION_LABELS = {
     S.CONFIRMED: "Confirmer (par téléphone)",

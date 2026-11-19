@@ -6,6 +6,7 @@ and a test order sent to the owner's own phone.
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Form, Request
@@ -23,6 +24,7 @@ from app.ratelimit import limiter
 from app.routers.dashboard import _ctx
 from app.schemas import OrderIn
 from app.security import generate_api_key
+from app.services.branding import MAX_LOGO_BYTES, BrandingError, normalize_hex, validate_logo
 from app.services.intake import create_order
 from app.services.notify import send_order_confirmation
 from app.services.onboarding import onboarding_steps, progress
@@ -169,3 +171,33 @@ def new_api_key(
         "dashboard/api_key_once.html",
         _ctx(request, user, shop, api_key=api_key, nav="onboarding"),
     )
+
+
+@router.post("/dashboard/branding", dependencies=[Depends(csrf_protect)])
+async def save_branding(
+    request: Request, user: User = Depends(require_owner), db: Session = Depends(get_db)
+) -> RedirectResponse:
+    """Accent colour and logo of the public order form."""
+    shop = user_shop(db, user)
+    form = await request.form()
+    try:
+        color = str(form.get("brand_color", "")).strip()
+        if form.get("reset_color") == "on" or not color:
+            shop.brand_color = None
+        else:
+            shop.brand_color = normalize_hex(color)
+        upload = form.get("logo")
+        if form.get("remove_logo") == "on":
+            shop.logo, shop.logo_mime, shop.logo_updated_at = None, None, datetime.now(UTC)
+        elif upload is not None and not isinstance(upload, str) and upload.filename:
+            data = await upload.read(MAX_LOGO_BYTES + 1)
+            shop.logo_mime = validate_logo(data)
+            shop.logo = data
+            shop.logo_updated_at = datetime.now(UTC)
+    except BrandingError:
+        db.rollback()
+        return RedirectResponse(
+            "/dashboard/settings?msg=branding_invalid#branding", status_code=303
+        )
+    db.commit()
+    return RedirectResponse("/dashboard/settings?msg=saved#branding", status_code=303)

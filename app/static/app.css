@@ -433,6 +433,7 @@ details.table-view table { margin-top: 8px; }
 .lang-switch a.on { background: var(--brand); color: var(--on-brand); }
 .shop-logo { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; margin: 0 auto 12px;
   background: linear-gradient(135deg, #3a8ee0, #1660b0); color: #fff; font-size: 26px; font-weight: 800; box-shadow: var(--shadow); }
+.shop-logo.img { object-fit: contain; background: var(--surface); padding: 6px; border: 1px solid var(--border); }
 .shop-head h1 { font-size: 22px; } .shop-head p { color: var(--text-2); margin-top: 4px; }
 .trust { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .trust span { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--surface);
@@ -466,6 +467,12 @@ code.copy { display: block; padding: 8px 10px; user-select: all; }
 .setup-banner { display: flex; align-items: center; gap: 14px; padding: 14px 18px; margin-bottom: 16px; border-color: var(--brand); }
 .setup-banner .ico { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand-ink); }
 @media (max-width: 560px) { .step-body { margin-left: 0; } }
+
+/* --------------------------------------------------------------- branding */
+.brand-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.color-input { width: 56px; height: 40px; padding: 2px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--surface); cursor: pointer; }
+.logo-thumb { width: 48px; height: 48px; object-fit: contain; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+@media (max-width: 560px) { .brand-row { grid-template-columns: 1fr; } }
 
 /* --------------------------------------------------------------- shipping */
 .ship-form .select { width: 170px; } .ship-form .input { width: 180px; }

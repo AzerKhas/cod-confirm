@@ -22,6 +22,7 @@ from app.models import Shop
 from app.ratelimit import client_ip, limiter
 from app.schemas import OrderIn
 from app.security import check_form_token, make_form_token
+from app.services.branding import LOGO_TYPES, theme_css
 from app.services.intake import create_order
 from app.services.messages import FORM_LANGUAGES, TN_GOVERNORATES, form_texts
 from app.services.notify import send_order_confirmation_job
@@ -90,6 +91,26 @@ def show_form(
 ) -> HTMLResponse:
     shop = _get_shop(db, shop_slug)
     return _render(request, shop, _language(shop, lang))
+
+
+@router.get("/form/{shop_slug}/theme.css")
+def shop_theme(shop_slug: str, db: Session = Depends(get_db)) -> Response:
+    """The shop's accent colour as CSS variables (inline styles are forbidden by the CSP)."""
+    shop = _get_shop(db, shop_slug)
+    css = theme_css(shop.brand_color) if shop.brand_color else ""
+    return Response(css, media_type="text/css", headers={"Cache-Control": "public, max-age=300"})
+
+
+@router.get("/form/{shop_slug}/logo")
+def shop_logo(shop_slug: str, db: Session = Depends(get_db)) -> Response:
+    shop = _get_shop(db, shop_slug)
+    if not shop.logo or shop.logo_mime not in LOGO_TYPES:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    return Response(
+        shop.logo,
+        media_type=shop.logo_mime,
+        headers={"Cache-Control": "public, max-age=86400", "X-Content-Type-Options": "nosniff"},
+    )
 
 
 @router.get("/form/{shop_slug}/done", response_class=HTMLResponse)

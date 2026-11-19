@@ -1,5 +1,11 @@
 # Changelog
 
+## Shop branding on the order form
+- Settings → *Apparence du formulaire*: each shop picks its accent colour and uploads its logo; the public order form and the thank-you page use them, so customers see the shop's brand.
+- Accessible palette derived from one colour (`services/branding.py`): button text switches between white and near-black for contrast, accent text is darkened to >= 4.5:1 on white, dark mode included.
+- Served as `/form/<slug>/theme.css` (no inline style: the strict CSP stays) and `/form/<slug>/logo` (stored in the database because the production container is read-only; PNG / JPEG / WebP only, checked by magic bytes, 300 KB max, never SVG).
+- Migration `0012`. 613 tests.
+
 ## Mediterranean visual identity
 - New palette: Sidi Bou Said blue (`#1660b0`) on sand surfaces, navy navigation (`#14213d`) with a sand marker on the active page; darker navy for the operator console. Light and dark themes re-stepped (white text on blue >= 6:1; dark mode uses `#4a9be8` with dark text).
 - Blue gradients for the brand mark, hero KPI, login page and shop logo; new favicon and theme colour.

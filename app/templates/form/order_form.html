@@ -3,6 +3,7 @@
 {% macro field_error(name) %}
   {% if errors.get(name) %}<span class="error" id="{{ name }}-error">{{ errors[name] }}</span>{% endif %}
 {% endmacro %}
+{% block head %}{% if shop.brand_color %}<link rel="stylesheet" href="/form/{{ shop.slug }}/theme.css?v={{ shop.brand_color[1:] }}">{% endif %}{% endblock %}
 {% block body %}
 <main class="public">
   <div class="public-card">
@@ -13,7 +14,7 @@
       {% endfor %}
     </nav>
     <header class="shop-head">
-      <div class="shop-logo" aria-hidden="true">{{ shop.name[:1]|upper }}</div>
+      {% if shop.logo_mime %}<img class="shop-logo img" src="/form/{{ shop.slug }}/logo?v={{ shop.logo_updated_at.timestamp()|int if shop.logo_updated_at else 0 }}" alt="{{ shop.name }}" width="64" height="64">{% else %}<div class="shop-logo" aria-hidden="true">{{ shop.name[:1]|upper }}</div>{% endif %}
       <h1>{{ shop.name }}</h1>
       <p><b>{{ t.title }}</b> · {{ t.subtitle }}</p>
       <div class="trust">
