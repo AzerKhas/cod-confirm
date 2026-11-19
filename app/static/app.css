@@ -455,6 +455,25 @@ code.copy { display: block; padding: 8px 10px; user-select: all; }
 .setup-banner .ico { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand-ink); }
 @media (max-width: 560px) { .step-body { margin-left: 0; } }
 
+/* --------------------------------------------------------------- shipping */
+.ship-form .select { width: 170px; } .ship-form .input { width: 180px; }
+.card-head .select { width: auto; min-width: 190px; }
+.check-input { width: 18px; height: 18px; accent-color: var(--brand); }
+.print-page { max-width: 1000px; margin: 0 auto; padding: 24px; background: var(--surface); min-height: 100vh; }
+.signatures div { border-top: 1px solid var(--border-strong); padding-top: 8px; margin-top: 48px; color: var(--text-2); }
+.labels { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.label { border: 1.5px dashed var(--border-strong); border-radius: 10px; padding: 12px; display: grid; gap: 8px; break-inside: avoid; min-height: 62mm; }
+.label-ref { font-weight: 800; font-size: 16px; }
+.label-to { display: grid; gap: 2px; }
+.label-name { font-size: 16px; } .label-city { font-size: 15px; text-transform: uppercase; }
+.label-cod { border-top: 1px solid var(--border); padding-top: 6px; font-size: 15px; }
+.label-cod b { font-size: 18px; }
+@media print {
+  .print-page { padding: 0; max-width: none; }
+  .labels { gap: 4mm; } .label { min-height: 66mm; border-color: #999; }
+  body { background: #fff; color: #000; }
+}
+
 /* ---------------------------------------------------------------- billing */
 .banner { margin-bottom: 18px; align-items: center; }
 .plans { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }

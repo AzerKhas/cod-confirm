@@ -1,5 +1,12 @@
 # Changelog
 
+## Delivery (works with any carrier)
+- New **Expéditions** page: confirmed orders ready to ship, bulk "ship with carrier" (First Delivery, Intigo, Navex, Aramex, Rapid-Poste, own courier, other), printable **manifest** (bordereau with COD total and signatures) and **parcel labels** (2 × 4 on A4), carrier import file (CSV, formula-safe), parcels in transit with tracking links.
+- Order page: ship with carrier + tracking number; carrier / tracking shown with a public tracking link from the shop's pattern (`https://…{tracking}`, https only).
+- Delivery results: import the carrier's status file (CSV `;` or `,`, UTF-8 or Windows-1252; "Livré" → delivered, "Retour / Refusé / Annulé" → refused, in-transit ignored; matched by tracking number or `CC-<id>`, never another shop's parcel), or receive signed updates on `POST /webhooks/carrier/<slug>` (`X-Signature` = base64 HMAC-SHA256, secret generated in Settings and stored encrypted). Refusals update the customer's risk score.
+- Tunisian carriers don't publish public APIs (contract only); carrier-specific adapters can plug into `services/shipping.apply_carrier_status` when their docs are available.
+- Migration `0011`. 585 tests.
+
 ## Self-service sign-up + getting-started guide
 - `/signup`: a seller creates their shop and owner account in one minute and starts the free trial (unique slug from the shop name, language of messages, optional terms checkbox via `TERMS_URL`, `SIGNUP_ENABLED` switch). Protected by a signed expiring form token, honeypot and 5 sign-ups / hour / IP.
 - `/dashboard/onboarding`: checklist with progress (profile & products, WhatsApp, receiving orders, test order, Telegram, plan), shown in the menu and as a banner until done.

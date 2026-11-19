@@ -44,6 +44,7 @@ from app.services.orders import InvalidTransition, is_risky
 from app.services.privacy import delete_customer
 from app.services.scheduler import is_quiet_hours
 from app.services.sheets import service_account_email
+from app.services.shipping import CARRIERS, carrier_label, tracking_url
 from app.services.stats import compute_stats, local_day_bounds
 from app.templating import templates
 
@@ -305,6 +306,7 @@ def order_detail(
              can_resend=order.status in (S.NEW, S.AWAITING_CONFIRMATION, S.NO_ANSWER),
              editable=order.status not in (S.SHIPPED, S.DELIVERED, S.REFUSED, S.CANCELLED),
              risky=is_risky(order.customer), Direction=Direction, nav="orders",
+             carriers=CARRIERS, carrier_label=carrier_label, tracking_url=tracking_url,
              flash=request.query_params.get("msg")),
     )  # fmt: skip
 
@@ -454,6 +456,7 @@ def settings_page(
         "dashboard/settings.html",
         _ctx(request, user, shop, products=products, languages=list(Language),
              flash=request.query_params.get("msg"), sa_email=service_account_email(),
+             carriers=CARRIERS,
              nav="settings"),
     )  # fmt: skip
 

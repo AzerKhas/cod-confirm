@@ -109,6 +109,12 @@ class Shop(Base):
     # Google Sheets sync (optional): id of the sheet shared with the service account.
     google_sheet_id: Mapped[str | None] = mapped_column(String(100))
 
+    # Delivery settings: default carrier, public tracking URL pattern ("...{tracking}..."),
+    # and the secret that signs status updates pushed to /webhooks/carrier/<slug>.
+    default_carrier: Mapped[str | None] = mapped_column(String(30))
+    tracking_url_pattern: Mapped[str | None] = mapped_column(String(300))
+    carrier_webhook_secret: Mapped[str | None] = mapped_column(Text)
+
     # Telegram chat id of the owner, for alerts (modification requests, questions).
     owner_telegram_chat_id: Mapped[str | None] = mapped_column(String(40))
 
@@ -190,6 +196,10 @@ class Order(Base):
     reminders_sent: Mapped[int] = mapped_column(Integer, default=0)
     # True when the Google Sheet row must be (re)written.
     sheet_dirty: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
+    # Delivery: carrier code (services/shipping.CARRIERS) and its tracking number.
+    carrier: Mapped[str | None] = mapped_column(String(30))
+    tracking_number: Mapped[str | None] = mapped_column(String(64), index=True)
+    shipped_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     # When the "order shipped" WhatsApp notice went out (None = still to send).
     shipped_notified_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     last_contacted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)

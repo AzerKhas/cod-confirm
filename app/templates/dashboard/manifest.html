@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Bordereau – {{ shop.name }}{% endblock %}
+{% block body %}
+<main class="print-page">
+  <div class="row no-print mb-16"><a class="btn" href="/dashboard/shipping">← Expéditions</a><button type="button" class="btn btn-primary ml-auto" data-print>Imprimer</button></div>
+  <header class="row">
+    <div><h1>Bordereau d'expédition</h1><p class="text-2">{{ shop.name }} · {{ now|local_dt(shop.timezone, '%d/%m/%Y %H:%M') }}</p></div>
+    <div class="ml-auto right"><b>{{ orders|length }}</b> colis<br><b>{{ fmt(total) }} DT</b> à encaisser</div>
+  </header>
+  <table class="table mt-16">
+    <thead><tr><th>Réf.</th><th>Destinataire</th><th>Téléphone</th><th>Adresse</th><th>Produits</th><th class="right">COD (DT)</th></tr></thead>
+    <tbody>
+      {% for o in orders %}
+      <tr><td class="nowrap">CC-{{ o.id }}</td><td>{{ o.customer.name }}</td><td class="nowrap" dir="ltr">{{ o.customer.phone_e164 }}</td>
+        <td>{{ o.address }}, <b>{{ o.city }}</b></td><td>{{ items_summary(o['items'], 200) }}</td><td class="right num strong">{{ fmt(o.total) }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="grid grid-2 mt-24 signatures"><div>Signature expéditeur</div><div>Signature livreur</div></div>
+</main>
+{% endblock %}

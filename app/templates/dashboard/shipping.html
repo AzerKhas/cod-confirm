@@ -1,0 +1,83 @@
+{% extends "dashboard/layout.html" %}
+{% from "_ui.html" import avatar, empty with context %}
+{% block title %}Expéditions – {{ shop.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Expéditions</h1><p class="sub">Confiez les commandes confirmées au livreur, imprimez bordereau et étiquettes, puis importez les résultats de livraison.</p></div>
+</div>
+
+<form method="post" action="/dashboard/shipping/ship" class="card" id="ready">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <div class="card-head row">
+    <h2>À expédier</h2><span class="tag">{{ ready|length }}</span>
+    {% if ready %}
+    <div class="row ml-auto">
+      <select class="select" name="carrier" aria-label="Transporteur">
+        {% for code, label in carriers.items() %}<option value="{{ code }}" {% if shop.default_carrier == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary">{{ icon('truck', 'sm') }} Expédier la sélection</button>
+    </div>
+    {% endif %}
+  </div>
+  {% if ready %}
+  <div class="row card-body small">
+    <span class="text-2">Documents pour la sélection (ou toutes si rien n'est coché) :</span>
+    <button class="btn btn-sm" formmethod="get" formaction="/dashboard/shipping/manifest" formtarget="_blank">{{ icon('orders', 'sm') }} Bordereau</button>
+    <button class="btn btn-sm" formmethod="get" formaction="/dashboard/shipping/labels" formtarget="_blank">{{ icon('package', 'sm') }} Étiquettes</button>
+    <button class="btn btn-sm" formmethod="get" formaction="/dashboard/shipping/export.csv">{{ icon('download', 'sm') }} Fichier pour le livreur (CSV)</button>
+  </div>
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th><span class="sr-only">Choisir</span></th><th>Commande</th><th>Client</th><th class="hide-sm">Adresse</th><th class="right">À encaisser</th></tr></thead>
+    <tbody>
+      {% for o in ready %}
+      <tr>
+        <td><input type="checkbox" name="ids" value="{{ o.id }}" aria-label="Commande {{ o.id }}" class="check-input"></td>
+        <td><a class="link" href="/dashboard/orders/{{ o.id }}">{{ o.id }}</a><div class="xs muted">{{ o.updated_at|ago }}</div></td>
+        <td><div class="cell-user">{{ avatar(o.customer.name, o.customer_id) }}<div><b>{{ o.customer.name }}</b><span dir="ltr">{{ o.customer.phone_e164 }}</span></div></div></td>
+        <td class="hide-sm"><div class="truncate">{{ o.address }}, {{ o.city }}</div></td>
+        <td class="right num strong nowrap">{{ fmt(o.total) }} DT</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+    {{ empty('Aucune commande confirmée à expédier', 'Les commandes confirmées par les clients apparaissent ici.', 'truck') }}
+  {% endif %}
+</form>
+
+<div class="grid grid-2 mt-16">
+  <section class="card" id="import">
+    <div class="card-head"><h2>Importer les résultats du livreur</h2></div>
+    <div class="card-body stack">
+      <p class="small text-2">Le fichier (CSV) envoyé par votre livreur : une colonne <b>Statut</b> (« Livré », « Retour »…) et une colonne <b>Suivi</b> ou <b>Référence</b> (CC-123). Les commandes passent en <i>Livrée</i> ou <i>Refusée</i> automatiquement.</p>
+      {% if report %}
+        {% if report.error %}<div class="alert alert-danger">{{ icon('alert') }}<span>{{ report.error }}</span></div>
+        {% else %}<div class="alert alert-ok">{{ icon('check-circle') }}<span>{{ report.delivered }} livrée(s), {{ report.refused }} retour(s), {{ report.unchanged }} inchangée(s){% if report.not_found_count %}, {{ report.not_found_count }} introuvable(s) : {{ report.not_found|join(', ') }}{% endif %}.</span></div>{% endif %}
+      {% endif %}
+      <form method="post" action="/dashboard/shipping/import" enctype="multipart/form-data" class="row">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <input class="input" type="file" name="file" accept=".csv,text/csv" required aria-label="Fichier CSV">
+        <button class="btn">{{ icon('refresh', 'sm') }} Importer</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>Chez le livreur</h2><span class="tag ml-auto">{{ transit|length }}</span></div>
+    {% if transit %}
+    <ul class="list">
+      {% for o in transit[:12] %}
+      <li>{{ avatar(o.customer.name, o.customer_id) }}
+        <a class="row-link" href="/dashboard/orders/{{ o.id }}"><b>#{{ o.id }} {{ o.customer.name }}</b>
+          <div class="meta">{{ carrier_label(o.carrier) }}{% if o.tracking_number %} · {{ o.tracking_number }}{% endif %} · {{ o.shipped_at|ago if o.shipped_at else '' }}</div></a>
+        {% set link = tracking_url(shop, o) %}
+        {% if link %}<a class="btn btn-sm ml-auto" href="{{ link }}" target="_blank" rel="noopener">Suivi</a>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}{{ empty('Aucun colis en cours', '', 'package') }}{% endif %}
+  </section>
+</div>
+{% endblock %}

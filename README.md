@@ -174,6 +174,17 @@ Runs inside the app (`SCHEDULER_ENABLED=true`) every minute. **Enable it on one 
 - No answer → reminder after 3 h, second after 24 h (`shops.reminder_delays`), then NO_ANSWER 24 h later.
 - Every evening (21:00) → summary to the owner on Telegram + purge of data older than `shops.data_retention_days`.
 
+## Delivery
+
+**Expéditions** page: select confirmed orders → choose the carrier → *Expédier* (the customer gets
+the "order shipped" WhatsApp). Print the **bordereau** and **labels**, or download the CSV to import
+into the carrier's platform. When the carrier sends back its status file (Livré / Retour), import
+it: orders become *Livrée* / *Refusée* automatically. A carrier or integrator can also push statuses:
+
+```bash
+curl -X POST https://<domain>/webhooks/carrier/<shop-slug>   -H "X-Signature: <base64 HMAC-SHA256(secret, body)>"   -d '{"updates": [{"tracking_number": "NAV-77", "status": "livré"}]}'
+```
+
 ## Subscriptions & payments
 
 Sellers pay their plan in **Dashboard → Abonnement** (1, 3 or 12 months; 12 months = 10 paid)

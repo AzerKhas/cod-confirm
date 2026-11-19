@@ -63,4 +63,24 @@
 
   <div class="form-foot"><button class="btn btn-primary">{{ icon('check') }} Enregistrer</button></div>
 </form>
+
+<form method="post" action="/dashboard/shipping/settings" class="card mt-16" id="shipping">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <div class="form-section">
+    <div class="intro"><h3>Livraison</h3><p>Transporteur proposé par défaut et lien de suivi envoyé aux clients.</p></div>
+    <div class="form-grid">
+      <div class="field"><label for="carrier">Transporteur par défaut</label>
+        <select class="select" id="carrier" name="default_carrier"><option value="">—</option>
+          {% for code, label in carriers.items() %}<option value="{{ code }}" {% if shop.default_carrier == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="tpat">Lien de suivi (optionnel)</label>
+        <input class="input mono" id="tpat" name="tracking_url_pattern" value="{{ shop.tracking_url_pattern or '' }}" maxlength="300" placeholder="https://…/suivi?code={tracking}">
+        <span class="hint">{tracking} est remplacé par le numéro de suivi.</span></div>
+    </div>
+  </div>
+  <div class="form-foot">
+    <button class="btn" formaction="/dashboard/shipping/webhook-secret" data-confirm="Générer un nouveau secret ? L'ancien cessera de fonctionner.">{{ icon('key', 'sm') }} {{ 'Nouveau secret webhook livreur' if shop.carrier_webhook_secret else 'Activer le webhook livreur' }}</button>
+    <button class="btn btn-primary">{{ icon('check') }} Enregistrer</button>
+  </div>
+</form>
 {% endblock %}
