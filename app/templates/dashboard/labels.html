@@ -5,17 +5,17 @@
   <div class="row no-print mb-16"><a class="btn" href="/dashboard/shipping">← Expéditions</a><span class="text-2">{{ orders|length }} étiquette(s) · format 2 × 4 sur A4</span><button type="button" class="btn btn-primary ml-auto" data-print>Imprimer</button></div>
   <div class="labels">
     {% for o in orders %}
-    <article class="label">
-      <div class="row"><b>{{ shop.name }}</b><span class="ml-auto label-ref">CC-{{ o.id }}</span></div>
-      <div class="label-to">
+    <article class="parcel">
+      <div class="row"><b>{{ shop.name }}</b><span class="ml-auto parcel-ref">CC-{{ o.id }}</span></div>
+      <div class="parcel-to">
         <span class="xs muted">Destinataire</span>
-        <b class="label-name">{{ o.customer.name }}</b>
+        <b class="parcel-name">{{ o.customer.name }}</b>
         <span dir="ltr" class="strong">{{ o.customer.phone_e164 }}</span>
         <span>{{ o.address }}</span>
-        <b class="label-city">{{ o.city }}</b>
+        <b class="parcel-city">{{ o.city }}</b>
       </div>
       <div class="small">{{ items_summary(o['items'], 120) }}</div>
-      <div class="row label-cod"><span>À encaisser</span><b class="ml-auto">{{ fmt(o.total) }} DT</b></div>
+      <div class="row parcel-cod"><span>À encaisser</span><b class="ml-auto">{{ fmt(o.total) }} DT</b></div>
       {% if o.tracking_number %}<div class="xs">{{ carrier_label(o.carrier) }} · {{ o.tracking_number }}</div>{% endif %}
     </article>
     {% endfor %}

@@ -1,5 +1,10 @@
 # Changelog
 
+## Mediterranean visual identity
+- New palette: Sidi Bou Said blue (`#1660b0`) on sand surfaces, navy navigation (`#14213d`) with a sand marker on the active page; darker navy for the operator console. Light and dark themes re-stepped (white text on blue >= 6:1; dark mode uses `#4a9be8` with dark text).
+- Blue gradients for the brand mark, hero KPI, login page and shop logo; new favicon and theme colour.
+- Fix: the parcel-label styles (`.label`) leaked into the KPI tiles; renamed to `.parcel`.
+
 ## Delivery (works with any carrier)
 - New **Expéditions** page: confirmed orders ready to ship, bulk "ship with carrier" (First Delivery, Intigo, Navex, Aramex, Rapid-Poste, own courier, other), printable **manifest** (bordereau with COD total and signatures) and **parcel labels** (2 × 4 on A4), carrier import file (CSV, formula-safe), parcels in transit with tracking links.
 - Order page: ship with carrier + tracking number; carrier / tracking shown with a public tracking link from the shop's pattern (`https://…{tracking}`, https only).
