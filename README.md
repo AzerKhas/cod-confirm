@@ -185,6 +185,15 @@ it: orders become *Livrée* / *Refusée* automatically. A carrier or integrator 
 curl -X POST https://<domain>/webhooks/carrier/<shop-slug>   -H "X-Signature: <base64 HMAC-SHA256(secret, body)>"   -d '{"updates": [{"tracking_number": "NAV-77", "status": "livré"}]}'
 ```
 
+## Meta Pixel (ads measurement)
+
+Settings → *Meta Pixel*: paste the Pixel ID and a Conversions API token (Events Manager → your
+pixel → Settings → Conversions API → Generate access token). Customers see a cookie banner on the
+order form; only if they accept, the browser pixel loads and the order keeps its `_fbp` / `_fbc`
+ids. A `Purchase` is sent to Meta **server-side, only when the order is confirmed on WhatsApp**
+(or delivered, per setting), so campaigns optimise for real buyers instead of fake orders. Use the
+test event code + *Envoyer un événement test* to check it in *Test Events*, then clear the code.
+
 ## Subscriptions & payments
 
 Sellers pay their plan in **Dashboard → Abonnement** (1, 3 or 12 months; 12 months = 10 paid)

@@ -16,8 +16,10 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.db import get_db
 from app.enums import Language, OrderSource
+from app.middleware import PIXEL_CSP
 from app.models import Shop
 from app.ratelimit import client_ip, limiter
 from app.schemas import OrderIn
@@ -25,6 +27,7 @@ from app.security import check_form_token, make_form_token
 from app.services.branding import LOGO_TYPES, theme_css
 from app.services.intake import create_order
 from app.services.messages import FORM_LANGUAGES, TN_GOVERNORATES, form_texts
+from app.services.meta_capi import browser_meta, is_enabled
 from app.services.notify import send_order_confirmation_job
 from app.templating import templates
 
@@ -80,9 +83,21 @@ def _render(
             "values": values or {},
             "errors": errors or {},
             "form_token": make_form_token(shop.slug),
+            "pixel_event": "PageView",
         },
         status_code=status_code,
+        headers=_pixel_headers(shop),
     )
+
+
+def _public_form_url(request: Request, shop: Shop) -> str:
+    base = (get_settings().public_base_url or str(request.base_url)).rstrip("/")
+    return f"{base}/form/{shop.slug}"
+
+
+def _pixel_headers(shop: Shop) -> dict[str, str] | None:
+    """Allow Meta's pixel script only on the form pages of shops that enabled it."""
+    return {"Content-Security-Policy": PIXEL_CSP} if is_enabled(shop) else None
 
 
 @router.get("/form/{shop_slug}", response_class=HTMLResponse)
@@ -123,7 +138,8 @@ def form_done(
         request,
         "form/order_done.html",
         {"shop": shop, "t": form_texts(language), "rtl": language is Language.ARABIC,
-         "html_lang": language.value},
+         "html_lang": language.value, "pixel_event": "Lead"},
+        headers=_pixel_headers(shop),
     )  # fmt: skip
 
 
@@ -208,6 +224,16 @@ async def submit_form(
         return _render(request, shop, lang, values, errors, status.HTTP_400_BAD_REQUEST)
 
     result = create_order(db, shop, data, OrderSource.FORM)
+    if result.created and is_enabled(shop) and values.get("ad_consent") == "1":
+        # Ad measurement data is only kept when the customer accepted the consent banner.
+        result.order.ad_consent = True
+        result.order.ad_meta = browser_meta(
+            values,
+            ip=client_ip(request),
+            user_agent=request.headers.get("user-agent"),
+            url=_public_form_url(request, shop),
+        )
+        db.commit()
     if result.created:
         background.add_task(send_order_confirmation_job, result.order.id)
     return RedirectResponse(done_url, status_code=status.HTTP_303_SEE_OTHER)

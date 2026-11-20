@@ -41,6 +41,13 @@ FORM_TEXTS: dict[Language, dict[str, str]] = {
         "trust_delivery": "Livraison l kol wileya",
         "total": "Total",
         "secure": "Ma3loumetek ma netsarfouch fiha m3a 7ad",
+        "secure_pixel": "Ma3loumetek ma netsarfouch fiha, w el pub ken b mowef9tek",
+        "ads_text": (
+            "Nesta3mlou cookies mta3 Meta bech nqisou el pub mte3na. Ken twafe9, Meta ya3ref "
+            "ki tconfirmi el commande (noumrou mte3ek yemchi haché, ma yetqrach)."
+        ),
+        "ads_accept": "Nwafe9",
+        "ads_decline": "La, chokran",
     },
     Language.ARABIC: {
         "title": "اطلب الآن",
@@ -66,6 +73,13 @@ FORM_TEXTS: dict[Language, dict[str, str]] = {
         "trust_delivery": "توصيل لكل الولايات",
         "total": "المجموع",
         "secure": "معطياتك لا تُشارك مع أي طرف",
+        "secure_pixel": "معطياتك محمية، والقياس الإعلاني بموافقتك فقط",
+        "ads_text": (
+            "نستعمل ملفات تعريف الارتباط من Meta لقياس إعلاناتنا. إذا وافقت، نُعلم Meta عند "
+            "تأكيد طلبك (يُرسل رقمك في شكل مُجزّأ غير مقروء)."
+        ),
+        "ads_accept": "أوافق",
+        "ads_decline": "لا، شكرًا",
     },
     Language.FRENCH: {
         "title": "Commander maintenant",
@@ -92,6 +106,16 @@ FORM_TEXTS: dict[Language, dict[str, str]] = {
         "trust_delivery": "Livraison partout en Tunisie",
         "total": "Total",
         "secure": "Vos informations ne sont jamais partagées",
+        "secure_pixel": (
+            "Vos informations restent privées ; mesure publicitaire uniquement avec votre accord"
+        ),
+        "ads_text": (
+            "Nous utilisons les cookies de Meta pour mesurer nos publicités. Si vous "
+            "acceptez, Meta est informé une fois votre commande confirmée (votre numéro est "
+            "transmis haché, illisible)."
+        ),
+        "ads_accept": "Accepter",
+        "ads_decline": "Refuser",
     },
     Language.ENGLISH: {
         "title": "Order now",
@@ -118,6 +142,13 @@ FORM_TEXTS: dict[Language, dict[str, str]] = {
         "trust_delivery": "Delivery all over Tunisia",
         "total": "Total",
         "secure": "Your details are never shared",
+        "secure_pixel": "Your details stay private; ad measurement only with your consent",
+        "ads_text": (
+            "We use Meta cookies to measure our ads. If you accept, Meta is told once your "
+            "order is confirmed (your number is sent hashed, unreadable)."
+        ),
+        "ads_accept": "Accept",
+        "ads_decline": "Decline",
     },
 }
 

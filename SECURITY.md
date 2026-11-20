@@ -18,6 +18,7 @@ disclosure.
 | Order items, total | confirm the order | `orders` |
 | WhatsApp messages exchanged | history shown to the seller | `message_logs` |
 | Opt-out flag + date | never contact again after STOP | `customers` |
+| Ad consent, `_fbp` / `_fbc`, IP, user agent (only if the customer accepted the banner and the shop enabled Meta Pixel) | report confirmed sales to Meta | `orders.ad_meta` |
 
 - **Retention**: finished orders older than `shops.data_retention_days` (default 365) are
   deleted every night, with customers left without orders. Active orders are never purged.
@@ -26,6 +27,8 @@ disclosure.
 - **Logs never contain** full phone numbers (`+216*****456`), tokens, passwords or message
   content of free-text replies beyond what is needed for debugging.
 - Usage counters (billing) keep only counts per month, no personal data.
+- **Meta Pixel** (opt-in per shop): no Meta script before the customer's consent; the phone,
+  city and country sent to the Conversions API are SHA-256 hashed; the CAPI token is encrypted.
 
 In Tunisia, processing personal data falls under the *Loi organique n° 2004-63* (INPDP):
 each seller remains the data controller for their customers; the operator processes data on

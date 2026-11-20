@@ -26,6 +26,8 @@ from app.schemas import OrderIn
 from app.security import generate_api_key
 from app.services.branding import MAX_LOGO_BYTES, BrandingError, normalize_hex, validate_logo
 from app.services.intake import create_order
+from app.services.meta_capi import EVENT_ON, PIXEL_ID_RE, TEST_CODE_RE, CapiError
+from app.services.meta_capi import test_connection as capi_test
 from app.services.notify import send_order_confirmation
 from app.services.onboarding import onboarding_steps, progress
 from app.services.phone import InvalidPhone, normalize_phone
@@ -201,3 +203,49 @@ async def save_branding(
         )
     db.commit()
     return RedirectResponse("/dashboard/settings?msg=saved#branding", status_code=303)
+
+
+def _pixel_back(msg: str) -> RedirectResponse:
+    return RedirectResponse(f"/dashboard/settings?msg={msg}#pixel", status_code=303)
+
+
+@router.post("/dashboard/pixel", dependencies=[Depends(csrf_protect)])
+def save_pixel(
+    pixel_id: str = Form(default="", max_length=40),
+    capi_token: str = Form(default="", max_length=1000),
+    test_event_code: str = Form(default="", max_length=60),
+    event_on: str = Form(default="confirmed", max_length=20),
+    disable: str = Form(default=""),
+    user: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+) -> RedirectResponse:
+    """Meta Pixel id, Conversions API token (encrypted) and when the Purchase is sent."""
+    shop = user_shop(db, user)
+    if disable == "on":
+        shop.meta_pixel_id = shop.meta_capi_token = shop.meta_test_event_code = None
+        db.commit()
+        return _pixel_back("saved")
+    pid, code = pixel_id.strip(), test_event_code.strip()
+    if not PIXEL_ID_RE.match(pid) or (code and not TEST_CODE_RE.match(code)):
+        return _pixel_back("pixel_invalid")
+    shop.meta_pixel_id = pid
+    shop.meta_test_event_code = code or None
+    shop.meta_event_on = event_on if event_on in EVENT_ON else "confirmed"
+    if capi_token.strip():  # empty field = keep the stored token
+        shop.meta_capi_token = encrypt_secret(capi_token.strip())
+    db.commit()
+    return _pixel_back("saved")
+
+
+@router.post("/dashboard/pixel/test", dependencies=[Depends(csrf_protect)])
+def test_pixel(
+    user: User = Depends(require_owner), db: Session = Depends(get_db)
+) -> RedirectResponse:
+    shop = user_shop(db, user)
+    limiter.check(f"pixel-test:{shop.id}", 10, 3600)
+    try:
+        capi_test(shop)
+    except CapiError as exc:
+        log.warning("pixel test failed", extra={"shop_id": shop.id, "error": str(exc)})
+        return _pixel_back("pixel_test_err")
+    return _pixel_back("pixel_test_ok")

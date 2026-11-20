@@ -29,6 +29,18 @@ CSP = "; ".join(
 )
 
 
+# Public order form of a shop that enabled Meta Pixel: same policy plus Meta's script host
+# and its pixel endpoints. Set per response by the form routes (the middleware keeps an
+# existing header), so the dashboard never allows any third-party script but HTMX.
+PIXEL_CSP = (
+    CSP.replace("script-src 'self' https://unpkg.com",
+                "script-src 'self' https://unpkg.com https://connect.facebook.net")
+    .replace("img-src 'self' data:", "img-src 'self' data: https://www.facebook.com")
+    .replace("connect-src 'self'",
+             "connect-src 'self' https://www.facebook.com https://connect.facebook.net")
+)  # fmt: skip
+
+
 class SecurityHeadersMiddleware:
     def __init__(self, app: ASGIApp, *, hsts: bool = False) -> None:
         self.app = app

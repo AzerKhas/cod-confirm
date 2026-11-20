@@ -107,4 +107,33 @@
   </div>
   <div class="form-foot"><button class="btn btn-primary">{{ icon('check') }} Enregistrer</button></div>
 </form>
+
+<form method="post" action="/dashboard/pixel" class="card mt-16" id="pixel">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <div class="form-section">
+    <div class="intro"><h3>Meta Pixel (publicités)</h3>
+      <p>Mesurez vos pubs Facebook / Instagram avec les <b>vraies</b> ventes : Meta reçoit un achat seulement quand le client confirme sur WhatsApp, pas pour chaque formulaire. Le client accepte ou refuse les cookies sur le formulaire.</p></div>
+    <div class="form-grid">
+      <div class="field"><label for="pxid">Pixel ID (dataset)</label>
+        <input class="input mono" id="pxid" name="pixel_id" inputmode="numeric" maxlength="20" value="{{ shop.meta_pixel_id or '' }}" placeholder="123456789012345">
+        <span class="hint">Gestionnaire d'événements → Sources de données → votre pixel.</span></div>
+      <div class="field"><label for="pxtok">Token Conversions API</label>
+        <input class="input mono" id="pxtok" name="capi_token" type="password" autocomplete="off" maxlength="1000" placeholder="{{ '•••••••• (enregistré, laisser vide pour garder)' if shop.meta_capi_token else 'EAAG…' }}">
+        <span class="hint">Paramètres du pixel → API Conversions → Générer un token. Stocké chiffré.</span></div>
+      <div class="field"><label for="pxon">Envoyer l'achat à Meta quand la commande est</label>
+        <select class="select" id="pxon" name="event_on">
+          <option value="confirmed" {% if shop.meta_event_on != 'delivered' %}selected{% endif %}>Confirmée sur WhatsApp (recommandé)</option>
+          <option value="delivered" {% if shop.meta_event_on == 'delivered' %}selected{% endif %}>Livrée (plus précis, plus lent)</option>
+        </select></div>
+      <div class="field"><label for="pxtest">Code de test (optionnel)</label>
+        <input class="input mono" id="pxtest" name="test_event_code" maxlength="40" value="{{ shop.meta_test_event_code or '' }}" placeholder="TEST12345">
+        <span class="hint">Onglet « Tester les événements ». À vider une fois les tests finis.</span></div>
+    </div>
+    {% if shop.meta_pixel_id %}<label class="check small mt-8"><input type="checkbox" name="disable"> Désactiver le pixel</label>{% endif %}
+  </div>
+  <div class="form-foot">
+    {% if shop.meta_pixel_id and shop.meta_capi_token %}<button class="btn" formaction="/dashboard/pixel/test">{{ icon('bolt', 'sm') }} Envoyer un événement test</button>{% endif %}
+    <button class="btn btn-primary">{{ icon('check') }} Enregistrer</button>
+  </div>
+</form>
 {% endblock %}

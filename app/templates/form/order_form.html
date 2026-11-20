@@ -28,9 +28,10 @@
       <div class="alert alert-danger" role="alert">{{ icon('alert') }}<span>{{ errors['_form'] }}</span></div>
     {% endif %}
 
-    <form method="post" action="" class="card mt-16" novalidate>
+    <form method="post" action="" class="card mt-16" novalidate data-order-form>
       <input type="hidden" name="lang" value="{{ lang }}">
       <input type="hidden" name="ft" value="{{ form_token }}">
+      {% if shop.meta_pixel_id %}<input type="hidden" name="ad_consent" value=""><input type="hidden" name="fbp" value=""><input type="hidden" name="fbc" value="">{% endif %}
       {# Honeypot: hidden from humans, bots fill it. #}
       <div class="honeypot" aria-hidden="true">
         <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
@@ -85,9 +86,10 @@
       </div>
 
       <button type="submit" class="btn btn-primary btn-lg btn-block">{{ icon('check') }} {{ t.submit }}</button>
-      <p class="xs muted right">{{ icon('shield', 'sm') }} {{ t.secure }}</p>
+      <p class="xs muted right">{{ icon('shield', 'sm') }} {{ t.secure_pixel if shop.meta_pixel_id else t.secure }}</p>
     </form>
     <p class="powered">COD Confirm</p>
   </div>
 </main>
+{% include "form/_pixel.html" %}
 {% endblock %}

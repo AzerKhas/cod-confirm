@@ -1,5 +1,11 @@
 # Changelog
 
+## Meta Pixel + Conversions API (real sales only)
+- Settings → *Meta Pixel*: Pixel ID, Conversions API token (stored encrypted), optional test event code, and when to report a sale: order **confirmed on WhatsApp** (default) or **delivered**. "Send a test event" button.
+- Order form and thank-you page: consent banner in the form's language (Tounsi / العربية / Français / English, equal Accept / Decline buttons). Nothing loads from Meta before the customer accepts; then `PageView` (form) and `Lead` (thank-you page) are sent by the browser. No inline script: `/static/pixel.js`, and Meta's hosts are allowed in the CSP only on the form pages of shops with a pixel.
+- Server side (`services/meta_capi.py`, scheduler): one `Purchase` per consented form order once it reaches the chosen status (`event_id` `purchase-<id>`, value + TND, hashed phone / city / country, IP, user agent, `_fbp` / `_fbc`). Meta learns from orders that are actually confirmed, not from fake or refused ones. 5xx / network errors are retried, 4xx marks the order `error` (no endless retry); orders older than 30 days are never sent.
+- Migration `0013`. 628 tests.
+
 ## Shop branding on the order form
 - Settings → *Apparence du formulaire*: each shop picks its accent colour and uploads its logo; the public order form and the thank-you page use them, so customers see the shop's brand.
 - Accessible palette derived from one colour (`services/branding.py`): button text switches between white and near-black for contrast, accent text is darkened to >= 4.5:1 on white, dark mode included.

@@ -23,6 +23,7 @@ from sqlalchemy import (
     Text,
     TypeDecorator,
     UniqueConstraint,
+    false,
     true,
 )
 from sqlalchemy import Enum as SAEnum
@@ -123,6 +124,16 @@ class Shop(Base):
     tracking_url_pattern: Mapped[str | None] = mapped_column(String(300))
     carrier_webhook_secret: Mapped[str | None] = mapped_column(Text)
 
+    # Meta Pixel + Conversions API (optional). The browser pixel only loads after the customer
+    # accepts the consent banner; the server sends a Purchase only for consented orders that
+    # reach `meta_event_on` ("confirmed" or "delivered"). The CAPI token is encrypted.
+    meta_pixel_id: Mapped[str | None] = mapped_column(String(20))
+    meta_capi_token: Mapped[str | None] = mapped_column(Text)
+    meta_test_event_code: Mapped[str | None] = mapped_column(String(40))
+    meta_event_on: Mapped[str] = mapped_column(
+        String(12), default="confirmed", server_default="confirmed"
+    )
+
     # Telegram chat id of the owner, for alerts (modification requests, questions).
     owner_telegram_chat_id: Mapped[str | None] = mapped_column(String(40))
 
@@ -210,6 +221,12 @@ class Order(Base):
     shipped_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     # When the "order shipped" WhatsApp notice went out (None = still to send).
     shipped_notified_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    # Ad measurement, only with the customer's consent on the form: browser ids (_fbp/_fbc),
+    # IP, user agent and page URL. capi_state: None = to send, "sent", "error", "skipped".
+    ad_consent: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    ad_meta: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    capi_state: Mapped[str | None] = mapped_column(String(10))
+    capi_sent_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     last_contacted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)

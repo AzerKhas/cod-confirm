@@ -78,6 +78,12 @@ FLASH_MESSAGES: dict[str, tuple[bool, str]] = {
         False,
         "Logo refusé : PNG, JPEG ou WebP de 300 Ko maximum, couleur au format #RRGGBB.",
     ),
+    "pixel_invalid": (False, "Pixel ID (chiffres) ou code de test invalide."),
+    "pixel_test_ok": (
+        True,
+        "Événement test envoyé : regardez « Tester les événements » chez Meta.",
+    ),
+    "pixel_test_err": (False, "Échec de l'envoi à Meta : vérifiez le Pixel ID et le token."),
 }
 ACTION_LABELS = {
     S.CONFIRMED: "Confirmer (par téléphone)",

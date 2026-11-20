@@ -1,0 +1,12 @@
+{# Meta Pixel: nothing loads from Meta until the customer accepts (see /static/pixel.js). #}
+{% if shop.meta_pixel_id %}
+<div id="cc-pixel" data-pixel="{{ shop.meta_pixel_id }}" data-event="{{ pixel_event }}" hidden></div>
+<div class="ads-consent" id="ads-consent" role="region" aria-label="Cookies" hidden>
+  <p>{{ t.ads_text }}</p>
+  <div class="ads-actions">
+    <button type="button" class="btn btn-sm" data-ads="no">{{ t.ads_decline }}</button>
+    <button type="button" class="btn btn-sm btn-primary" data-ads="yes">{{ t.ads_accept }}</button>
+  </div>
+</div>
+<script src="/static/pixel.js?v={{ asset_v }}" defer></script>
+{% endif %}
