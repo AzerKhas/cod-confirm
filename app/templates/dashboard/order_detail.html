@@ -9,7 +9,8 @@
     <div class="row"><h1>Commande #{{ order.id }}</h1>{{ badge(order.status, status_labels) }}</div>
     <p class="sub">Reçue {{ order.created_at|ago }} · {{ order.created_at|local_dt(tz, '%d/%m/%Y %H:%M') }} · via {{ order.source.value }}{% if order.external_id %} (réf. {{ order.external_id }}){% endif %}
       {% if order.carrier %} · {{ icon('truck', 'sm') }} {{ carrier_label(order.carrier) }}{% if order.tracking_number %} <code>{{ order.tracking_number }}</code>{% endif %}
-        {% set link = tracking_url(shop, order) %}{% if link %} <a class="link" href="{{ link }}" target="_blank" rel="noopener">suivre le colis</a>{% endif %}{% endif %}</p>
+        {% set link = tracking_url(shop, order) %}{% if link %} <a class="link" href="{{ link }}" target="_blank" rel="noopener">suivre le colis</a>{% endif %}{% endif %}
+      {% if order.call_state %} · {{ icon('phone', 'sm') }} {{ {'calling': 'Appel vocal en cours', 'done': 'Appel vocal terminé', 'failed': 'Appel vocal non abouti'}[order.call_state] }}{% endif %}</p>
   </div>
   <div class="actions">
     {% for to, label in actions %}

@@ -136,4 +136,21 @@
     <button class="btn btn-primary">{{ icon('check') }} Enregistrer</button>
   </div>
 </form>
+
+<form method="post" action="/dashboard/voice" class="card mt-16" id="voice">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <div class="form-section">
+    <div class="intro"><h3>Appel vocal (IA, en darija)</h3>
+      <p>Quand un client ne répond pas sur WhatsApp, un agent vocal l'appelle une fois, en darija, pour confirmer ou annuler la commande. Le résultat met la commande à jour automatiquement.</p></div>
+    <div class="stack">
+      {% if voice_ready %}
+      <label class="check"><input type="checkbox" name="voice_calls_on" {% if shop.voice_calls_on %}checked{% endif %}> Appeler les clients sans réponse (entre 8 h et 22 h)</label>
+      <span class="hint">Un seul appel par commande, jamais aux clients qui ont envoyé STOP.</span>
+      {% else %}
+      <p class="small muted">{{ icon('clock', 'sm') }} Bientôt disponible : l'appel vocal n'est pas encore activé sur cette plateforme.</p>
+      {% endif %}
+    </div>
+  </div>
+  {% if voice_ready %}<div class="form-foot"><button class="btn btn-primary">{{ icon('check') }} Enregistrer</button></div>{% endif %}
+</form>
 {% endblock %}

@@ -72,6 +72,15 @@ class Settings(BaseSettings):
     signup_enabled: bool = True
     terms_url: str = ""
 
+    # Phone calls by an AI voice agent (ElevenLabs Agents + a Twilio or SIP number imported in
+    # ElevenLabs). Orders still unanswered on WhatsApp get one call; enabled when the key, agent
+    # and number are set. The webhook secret signs post-call results (/webhooks/voice).
+    elevenlabs_api_key: SecretStr = SecretStr("")
+    elevenlabs_agent_id: str = ""
+    elevenlabs_phone_number_id: str = ""
+    elevenlabs_telephony: Literal["twilio", "sip-trunk"] = "twilio"
+    elevenlabs_webhook_secret: SecretStr = SecretStr("")
+
     # Google Sheets sync: path to the service-account JSON key (optional).
     google_service_account_file: str = ""
 

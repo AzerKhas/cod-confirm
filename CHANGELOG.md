@@ -1,5 +1,11 @@
 # Changelog
 
+## AI voice call in Tunisian Darija
+- Orders still *Sans réponse* after the WhatsApp reminders get **one phone call** from an ElevenLabs voice agent (between 8:00 and 22:00, never after STOP, orders under 3 days old, 5 calls / shop / minute). The agent speaks Darija, says it is an automated assistant, reads the order back and asks the customer to confirm or cancel.
+- Result through the signed post-call webhook `POST /webhooks/voice` (`ElevenLabs-Signature: t=…,v0=…`, HMAC-SHA256, 30 min replay window). The data-collection item `decision` (confirmed / cancelled / unclear) updates the order with the note "appel vocal". It applies only if the order is still unanswered (a WhatsApp reply always wins), and only once per call. A failed call is shown on the order page.
+- Operator setup (agent prompt in Darija, number via Twilio or SIP trunk, webhook) in `docs/voice-agent.md`; `ELEVENLABS_*` env vars. Shop switch in Settings → *Appel vocal*.
+- Migration `0014`.
+
 ## Meta Pixel + Conversions API (real sales only)
 - Settings → *Meta Pixel*: Pixel ID, Conversions API token (stored encrypted), optional test event code, and when to report a sale: order **confirmed on WhatsApp** (default) or **delivered**. "Send a test event" button.
 - Order form and thank-you page: consent banner in the form's language (Tounsi / العربية / Français / English, equal Accept / Decline buttons). Nothing loads from Meta before the customer accepts; then `PageView` (form) and `Lead` (thank-you page) are sent by the browser. No inline script: `/static/pixel.js`, and Meta's hosts are allowed in the CSP only on the form pages of shops with a pixel.

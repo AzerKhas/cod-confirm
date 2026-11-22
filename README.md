@@ -185,6 +185,13 @@ it: orders become *Livrée* / *Refusée* automatically. A carrier or integrator 
 curl -X POST https://<domain>/webhooks/carrier/<shop-slug>   -H "X-Signature: <base64 HMAC-SHA256(secret, body)>"   -d '{"updates": [{"tracking_number": "NAV-77", "status": "livré"}]}'
 ```
 
+## AI voice call (Darija)
+
+Customers who don't answer on WhatsApp get one phone call from an AI voice agent in Tunisian
+Darija; their answer confirms or cancels the order automatically. The operator sets up
+ElevenLabs once (see [docs/voice-agent.md](docs/voice-agent.md)); each shop switches it on in
+Settings → *Appel vocal*.
+
 ## Meta Pixel (ads measurement)
 
 Settings → *Meta Pixel*: paste the Pixel ID and a Conversions API token (Events Manager → your

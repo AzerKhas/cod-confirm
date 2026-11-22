@@ -32,6 +32,7 @@ from app.services.orders import transition
 from app.services.privacy import purge_expired
 from app.services.sheets import sync_shop
 from app.services.stats import compute_stats, local_day_bounds
+from app.services.voice import send_voice_calls
 
 log = logging.getLogger(__name__)
 S = OrderStatus
@@ -202,6 +203,8 @@ def tick(now: datetime | None = None) -> None:
                 send_shipped_notices(db, shop, now)
                 sync_shop(db, shop)
                 send_pending_purchases(db, shop, now)
+                if not is_quiet_hours(shop, now):
+                    send_voice_calls(db, shop, now)
                 billing_jobs(db, shop, now)
                 daily_jobs(db, shop, now)
             except Exception:

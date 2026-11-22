@@ -134,6 +134,9 @@ class Shop(Base):
         String(12), default="confirmed", server_default="confirmed"
     )
 
+    # AI voice call for orders still unanswered on WhatsApp (needs the operator's ElevenLabs).
+    voice_calls_on: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+
     # Telegram chat id of the owner, for alerts (modification requests, questions).
     owner_telegram_chat_id: Mapped[str | None] = mapped_column(String(40))
 
@@ -227,6 +230,9 @@ class Order(Base):
     ad_meta: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     capi_state: Mapped[str | None] = mapped_column(String(10))
     capi_sent_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    # Voice call: None = not called, "calling", "done", "failed"; id of the ElevenLabs call.
+    call_state: Mapped[str | None] = mapped_column(String(10))
+    call_conversation_id: Mapped[str | None] = mapped_column(String(64), index=True)
     last_contacted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)

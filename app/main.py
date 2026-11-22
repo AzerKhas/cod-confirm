@@ -28,6 +28,7 @@ from app.routers import (
     order_form,
     shipping,
     signup,
+    voice,
     webhook_meta,
 )
 
@@ -80,6 +81,7 @@ def create_app() -> FastAPI:
     app.include_router(signup.router)
     app.include_router(onboarding.router)
     app.include_router(shipping.router)
+    app.include_router(voice.router)
 
     app.add_middleware(
         SessionMiddleware,
