@@ -59,7 +59,7 @@ def result(conversation_id: str, decision: str) -> dict:
 def test_calls_unanswered_orders_once(db_session: Session) -> None:
     route = respx.post(CALL_URL).mock(return_value=httpx.Response(
         200, json={"success": True, "message": "ok", "conversation_id": "conv_1", "callSid": "CA1"}))  # fmt: skip
-    shop = make_shop(db_session, name="Nour Mode", voice_calls_on=True)
+    shop = make_shop(db_session, name="Nour Mode", voice_calls_on=True, plan="pro")
     order = unanswered(db_session, shop, city="Sousse")
     make_order(db_session, shop, make_customer(db_session, shop, phone_e164="+21655444334"),
                OrderStatus.AWAITING_CONFIRMATION, created_at=NOW)  # still on WhatsApp  # fmt: skip
@@ -83,7 +83,7 @@ def test_no_call_when_off_opted_out_or_old(db_session: Session) -> None:
     route = respx.post(CALL_URL).mock(return_value=httpx.Response(200, json={}))
     off = make_shop(db_session, slug="off")
     unanswered(db_session, off)
-    shop = make_shop(db_session, slug="on", voice_calls_on=True)
+    shop = make_shop(db_session, slug="on", voice_calls_on=True, plan="pro")
     stop = unanswered(db_session, shop, phone="+21655444001")
     stop.customer.opted_out = True
     unanswered(db_session, shop, phone="+21655444002", created_at=NOW - timedelta(days=5))
@@ -96,7 +96,7 @@ def test_no_call_when_off_opted_out_or_old(db_session: Session) -> None:
 @respx.mock
 def test_provider_errors(db_session: Session) -> None:
     route = respx.post(CALL_URL).mock(return_value=httpx.Response(503))
-    shop = make_shop(db_session, voice_calls_on=True)
+    shop = make_shop(db_session, voice_calls_on=True, plan="pro")
     order = unanswered(db_session, shop)
     db_session.commit()
     send_voice_calls(db_session, shop, NOW)
@@ -109,7 +109,7 @@ def test_provider_errors(db_session: Session) -> None:
 def test_not_configured_means_no_call(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ELEVENLABS_API_KEY", "")
     get_settings.cache_clear()
-    shop = make_shop(db_session, voice_calls_on=True)
+    shop = make_shop(db_session, voice_calls_on=True, plan="pro")
     unanswered(db_session, shop)
     assert send_voice_calls(db_session, shop, NOW) == 0
 
@@ -174,3 +174,41 @@ def test_webhook_endpoint(client: TestClient, db_session: Session) -> None:
     assert r.status_code == 200 and r.json() == {"result": "confirmed"}
     db_session.refresh(order)
     assert order.status is OrderStatus.CONFIRMED
+
+
+@respx.mock
+def test_voice_only_on_pro_and_business(db_session: Session) -> None:
+    route = respx.post(CALL_URL).mock(return_value=httpx.Response(
+        200, json={"success": True, "message": "ok", "conversation_id": "c", "callSid": "CA"}))  # fmt: skip
+    for i, plan in enumerate(("trial", "starter", "pro", "business")):
+        shop = make_shop(db_session, slug=f"s{i}", plan=plan, voice_calls_on=True)
+        unanswered(db_session, shop, phone=f"+2165544400{i}")
+        db_session.commit()
+        assert send_voice_calls(db_session, shop, NOW) == (1 if plan in ("pro", "business") else 0)
+    assert route.call_count == 2
+
+
+def test_starter_cannot_switch_voice_on(client: TestClient, db_session: Session) -> None:
+    import re
+
+    from app.auth import hash_password, login_throttle
+    from app.enums import Role
+    from app.models import User
+
+    login_throttle._failures.clear()
+    shop = make_shop(db_session, slug="nour", plan="starter")
+    db_session.add(User(email="o@b.tn", password_hash=hash_password("owner-password-1"),
+                        role=Role.OWNER, shop_id=shop.id))  # fmt: skip
+    db_session.commit()
+    client.post("/login", data={"email": "o@b.tn", "password": "owner-password-1"})
+    page = client.get("/dashboard/settings").text
+    assert "Inclus dans les plans Pro et Business" in page
+    token = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)  # type: ignore[union-attr]
+    client.post("/dashboard/voice", data={"csrf_token": token, "voice_calls_on": "on"})
+    db_session.expire_all()
+    assert shop.voice_calls_on is False
+    shop.plan = "pro"
+    db_session.commit()
+    client.post("/dashboard/voice", data={"csrf_token": token, "voice_calls_on": "on"})
+    db_session.expire_all()
+    assert shop.voice_calls_on is True

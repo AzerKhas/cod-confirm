@@ -45,6 +45,7 @@
         <li>{{ icon('check', 'sm') }} Confirmation WhatsApp darija / arabe / français</li>
         <li>{{ icon('check', 'sm') }} Relances, tableau de bord, export CSV</li>
         <li>{{ icon('check', 'sm') }} Alertes Telegram, synchronisation Google Sheets</li>
+        {% if o.limits.voice_calls %}<li>{{ icon('phone', 'sm') }} <b>Appel vocal IA en darija</b> pour les clients sans réponse</li>{% endif %}
       </ul>
       <fieldset class="periods">
         <legend class="label-text">Durée</legend>

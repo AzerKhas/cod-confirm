@@ -190,7 +190,7 @@ curl -X POST https://<domain>/webhooks/carrier/<shop-slug>   -H "X-Signature: <b
 Customers who don't answer on WhatsApp get one phone call from an AI voice agent in Tunisian
 Darija; their answer confirms or cancels the order automatically. The operator sets up
 ElevenLabs once (see [docs/voice-agent.md](docs/voice-agent.md)); each shop switches it on in
-Settings → *Appel vocal*.
+Settings → *Appel vocal* (Pro and Business plans).
 
 ## Meta Pixel (ads measurement)
 

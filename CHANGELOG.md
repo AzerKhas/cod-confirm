@@ -4,6 +4,7 @@
 - Orders still *Sans réponse* after the WhatsApp reminders get **one phone call** from an ElevenLabs voice agent (between 8:00 and 22:00, never after STOP, orders under 3 days old, 5 calls / shop / minute). The agent speaks Darija, says it is an automated assistant, reads the order back and asks the customer to confirm or cancel.
 - Result through the signed post-call webhook `POST /webhooks/voice` (`ElevenLabs-Signature: t=…,v0=…`, HMAC-SHA256, 30 min replay window). The data-collection item `decision` (confirmed / cancelled / unclear) updates the order with the note "appel vocal". It applies only if the order is still unanswered (a WhatsApp reply always wins), and only once per call. A failed call is shown on the order page.
 - Operator setup (agent prompt in Darija, number via Twilio or SIP trunk, webhook) in `docs/voice-agent.md`; `ELEVENLABS_*` env vars. Shop switch in Settings → *Appel vocal*.
+- Included in the **Pro** and **Business** plans only (calls cost money per minute): shown on the plan cards, switch locked with an upgrade link on Trial / Starter.
 - Migration `0014`.
 
 ## Meta Pixel + Conversions API (real sales only)

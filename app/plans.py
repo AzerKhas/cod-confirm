@@ -24,13 +24,14 @@ class PlanLimits:
     monthly_orders: int
     price_tnd: int
     api_requests_per_minute: int
+    voice_calls: bool = False  # AI phone calls cost real money per minute: bigger plans only
 
 
 PLANS: dict[Plan, PlanLimits] = {
     Plan.TRIAL: PlanLimits("Essai", 50, 0, 30),
     Plan.STARTER: PlanLimits("Starter", 300, 49, 60),
-    Plan.PRO: PlanLimits("Pro", 1500, 129, 300),
-    Plan.BUSINESS: PlanLimits("Business", 6000, 349, 1200),
+    Plan.PRO: PlanLimits("Pro", 1500, 129, 300, voice_calls=True),
+    Plan.BUSINESS: PlanLimits("Business", 6000, 349, 1200, voice_calls=True),
 }
 
 QUOTA_TOLERANCE = 1.10

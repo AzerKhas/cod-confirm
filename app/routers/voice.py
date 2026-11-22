@@ -15,7 +15,7 @@ from app.db import get_db
 from app.models import User
 from app.ratelimit import client_ip, limiter
 from app.routers.intake import read_limited_body
-from app.services.voice import apply_call_result, verify_signature, voice_configured
+from app.services.voice import apply_call_result, verify_signature, voice_allowed
 
 router = APIRouter(include_in_schema=False)
 log = logging.getLogger(__name__)
@@ -48,6 +48,6 @@ def save_voice(
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     shop = user_shop(db, user)
-    shop.voice_calls_on = voice_calls_on == "on" and voice_configured()
+    shop.voice_calls_on = voice_calls_on == "on" and voice_allowed(shop)
     db.commit()
     return RedirectResponse("/dashboard/settings?msg=saved#voice", status_code=303)

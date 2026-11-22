@@ -29,6 +29,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.enums import Actor, OrderStatus
 from app.models import Order, Shop
+from app.plans import limits
 from app.services.orders import transition
 
 log = logging.getLogger(__name__)
@@ -57,6 +58,11 @@ def voice_configured(settings: Settings | None = None) -> bool:
         and s.elevenlabs_agent_id
         and s.elevenlabs_phone_number_id
     )
+
+
+def voice_allowed(shop: Shop) -> bool:
+    """Platform configured and the shop's plan includes voice calls (Pro, Business)."""
+    return voice_configured() and limits(shop.plan).voice_calls
 
 
 def call_variables(order: Order) -> dict[str, Any]:
@@ -119,7 +125,7 @@ def pending_calls(db: Session, shop: Shop, now: datetime) -> list[Order]:
 
 def send_voice_calls(db: Session, shop: Shop, now: datetime) -> int:
     """Scheduler job (outside quiet hours): one call per order unanswered on WhatsApp."""
-    if not shop.voice_calls_on or not voice_configured():
+    if not shop.voice_calls_on or not voice_allowed(shop):
         return 0
     placed = 0
     for order in pending_calls(db, shop, now):

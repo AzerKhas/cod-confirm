@@ -46,7 +46,7 @@ from app.services.scheduler import is_quiet_hours
 from app.services.sheets import service_account_email
 from app.services.shipping import CARRIERS, carrier_label, tracking_url
 from app.services.stats import compute_stats, local_day_bounds
-from app.services.voice import voice_configured
+from app.services.voice import voice_allowed, voice_configured
 from app.templating import templates
 
 router = APIRouter(include_in_schema=False)
@@ -467,7 +467,7 @@ def settings_page(
         "dashboard/settings.html",
         _ctx(request, user, shop, products=products, languages=list(Language),
              flash=request.query_params.get("msg"), sa_email=service_account_email(),
-             carriers=CARRIERS, voice_ready=voice_configured(),
+             carriers=CARRIERS, voice_ready=voice_configured(), voice_plan=voice_allowed(shop),
              nav="settings"),
     )  # fmt: skip
 

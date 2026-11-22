@@ -143,7 +143,9 @@
     <div class="intro"><h3>Appel vocal (IA, en darija)</h3>
       <p>Quand un client ne répond pas sur WhatsApp, un agent vocal l'appelle une fois, en darija, pour confirmer ou annuler la commande. Le résultat met la commande à jour automatiquement.</p></div>
     <div class="stack">
-      {% if voice_ready %}
+      {% if voice_ready and not voice_plan %}
+      <p class="small muted">{{ icon('bolt', 'sm') }} Inclus dans les plans Pro et Business. <a class="link" href="/dashboard/billing">Changer de plan</a></p>
+      {% elif voice_ready %}
       <label class="check"><input type="checkbox" name="voice_calls_on" {% if shop.voice_calls_on %}checked{% endif %}> Appeler les clients sans réponse (entre 8 h et 22 h)</label>
       <span class="hint">Un seul appel par commande, jamais aux clients qui ont envoyé STOP.</span>
       {% else %}
@@ -151,6 +153,6 @@
       {% endif %}
     </div>
   </div>
-  {% if voice_ready %}<div class="form-foot"><button class="btn btn-primary">{{ icon('check') }} Enregistrer</button></div>{% endif %}
+  {% if voice_plan %}<div class="form-foot"><button class="btn btn-primary">{{ icon('check') }} Enregistrer</button></div>{% endif %}
 </form>
 {% endblock %}
